@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exception.EntityExistsException;
 import ru.yandex.practicum.filmorate.exception.EntityNotExistsException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validator.UserValidator;
@@ -21,16 +20,14 @@ import ru.yandex.practicum.filmorate.validator.UserValidator;
 public class UserController {
 
     private final Map<Integer, User> users = new HashMap<>();
+    private int nextId = 1;
     private final UserValidator userValidator = new UserValidator();
 
     @PostMapping
     public User create(@RequestBody final User user) {
         userValidator.validate(user);
         transform(user);
-        if (users.containsKey(user.getId())) {
-            log.warn("Try to create user with existed id: {}", user);
-            throw new EntityExistsException();
-        }
+        setId(user);
         users.put(user.getId(), user);
         log.warn("User was created: {}", user);
         return user;
@@ -59,5 +56,10 @@ public class UserController {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
+    }
+
+    private void setId(final User user) {
+        user.setId(nextId);
+        nextId++;
     }
 }

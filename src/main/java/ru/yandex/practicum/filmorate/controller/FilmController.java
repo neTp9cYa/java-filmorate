@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exception.EntityExistsException;
 import ru.yandex.practicum.filmorate.exception.EntityNotExistsException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validator.FilmValidator;
@@ -21,15 +20,13 @@ import ru.yandex.practicum.filmorate.validator.FilmValidator;
 public class FilmController {
 
     private final Map<Integer, Film> films = new HashMap<>();
+    private int nextId = 1;
     private final FilmValidator filmValidator = new FilmValidator();
 
     @PostMapping
     public Film create(@RequestBody final Film film) {
         filmValidator.validate(film);
-        if (films.containsKey(film.getId())) {
-            log.warn("Try to create film with existed id: {}", film);
-            throw new EntityExistsException();
-        }
+        setId(film);
         films.put(film.getId(), film);
         log.warn("Film was created: {}", film);
         return film;
@@ -50,5 +47,10 @@ public class FilmController {
     @GetMapping
     public Collection<Film> findAll() {
         return films.values();
+    }
+
+    private void setId(final Film fild) {
+        fild.setId(nextId);
+        nextId++;
     }
 }
