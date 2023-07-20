@@ -4,14 +4,14 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.EntityExistsException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 @RestController
@@ -25,7 +25,7 @@ public class UserController {
         validate(user);
         transform(user);
         if (users.containsKey(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new EntityExistsException();
         }
         users.put(user.getId(), user);
         return user;
@@ -48,17 +48,17 @@ public class UserController {
 
         // электронная почта не может быть пустой и должна содержать символ @;
         if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ValidationException();
         }
 
         //логин не может быть пустым и содержать пробелы;
         if (user.getLogin() == null || user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ValidationException();
         }
 
         // дата рождения не может быть в будущем.
         if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ValidationException();
         }
     }
 
