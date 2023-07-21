@@ -12,8 +12,10 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 class FilmValidatorTest {
+
     private final FilmValidator filmValidator = new FilmValidator();
     private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private static final int MAX_DESCRIPTION_LENGTH = 200;
 
     @ParameterizedTest
     @NullSource
@@ -35,7 +37,7 @@ class FilmValidatorTest {
 
     @Test
     void validateLongDescriptionShouldNotThrow() {
-        final Film film = correctFilm().description("*".repeat(200)).build();
+        final Film film = correctFilm().description("*".repeat(MAX_DESCRIPTION_LENGTH)).build();
         assertDoesNotThrow(() -> filmValidator.validate(film));
     }
 

@@ -7,7 +7,10 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 @Slf4j
 public class FilmValidator {
+
     private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private static final int MAX_DESCRIPTION_LENGTH = 200;
+
     public void validate(final Film film) {
 
         // название не может быть пустым
@@ -16,13 +19,13 @@ public class FilmValidator {
             throw new ValidationException("Name is not valid");
         }
 
-        // максимальная длина описания — 200 символов
-        if (film.getDescription() != null && film.getDescription().length() > 200) {
+        // максимальная длина описания должна быть ограничена
+        if (film.getDescription() != null && film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
             log.warn("Film description is not valid: {}", film);
             throw new ValidationException("Description is not valid");
         }
 
-        // дата релиза — не раньше 28 декабря 1895 года;
+        // минимальная дата релиза должна быть ограничена;
         if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
             log.warn("Film release date  is not valid: {}", film);
             throw new ValidationException("Release date is not valid");
