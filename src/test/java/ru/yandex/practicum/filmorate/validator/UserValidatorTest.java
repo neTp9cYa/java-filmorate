@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.validator;
 
 import java.time.LocalDate;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
@@ -14,19 +16,21 @@ class UserValidatorTest {
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = {  "", " ", "without.at" })
+    @ValueSource(strings = {"", " ", "without.at"})
     void validateInvalidEmailShouldThrow(final String email) {
         final User user = correctUser().email(email).build();
-        final ValidationException exception = assertThrows(ValidationException.class, () -> userValidator.validate(user));
+        final ValidationException exception =
+            assertThrows(ValidationException.class, () -> userValidator.validate(user));
         assertEquals("Email is not valid", exception.getMessage());
     }
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = {  "", " ", "contains space" })
+    @ValueSource(strings = {"", " ", "contains space"})
     void validateInvalidLoginShouldThrow(final String login) {
         final User user = correctUser().login(login).build();
-        final ValidationException exception = assertThrows(ValidationException.class, () -> userValidator.validate(user));
+        final ValidationException exception =
+            assertThrows(ValidationException.class, () -> userValidator.validate(user));
         assertEquals("Login is not valid", exception.getMessage());
     }
 
@@ -39,7 +43,8 @@ class UserValidatorTest {
     @Test
     void validaBirthdayInFeatureShouldThrow() {
         final User user = correctUser().birthday(LocalDate.now().plusDays(1)).build();
-        final ValidationException exception = assertThrows(ValidationException.class, () -> userValidator.validate(user));
+        final ValidationException exception =
+            assertThrows(ValidationException.class, () -> userValidator.validate(user));
         assertEquals("Birthday is not valid", exception.getMessage());
     }
 

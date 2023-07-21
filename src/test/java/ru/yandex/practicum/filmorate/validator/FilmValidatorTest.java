@@ -19,7 +19,8 @@ class FilmValidatorTest {
     @ValueSource(strings = {"", " ",})
     void validateInvalidNameShouldThrow(final String name) {
         final Film film = correctFilm().name(name).build();
-        final ValidationException exception = assertThrows(ValidationException.class, () -> filmValidator.validate(film));
+        final ValidationException exception =
+            assertThrows(ValidationException.class, () -> filmValidator.validate(film));
         assertEquals("Name is not valid", exception.getMessage());
     }
 
@@ -40,7 +41,8 @@ class FilmValidatorTest {
     @Test
     void validateTooLongDescriptionShouldThrow() {
         final Film film = correctFilm().description("*".repeat(201)).build();
-        final ValidationException exception = assertThrows(ValidationException.class, () -> filmValidator.validate(film));
+        final ValidationException exception =
+            assertThrows(ValidationException.class, () -> filmValidator.validate(film));
         assertEquals("Description is not valid", exception.getMessage());
     }
 
@@ -57,7 +59,8 @@ class FilmValidatorTest {
         final Film film = correctFilm()
             .releaseDate(LocalDate.of(1895, 12, 28).minusDays(1))
             .build();
-        final ValidationException exception = assertThrows(ValidationException.class, () -> filmValidator.validate(film));
+        final ValidationException exception =
+            assertThrows(ValidationException.class, () -> filmValidator.validate(film));
         assertEquals("Release date is not valid", exception.getMessage());
     }
 
@@ -65,7 +68,8 @@ class FilmValidatorTest {
     @ValueSource(ints = {-1, 0})
     void validateNotPositiveDurationShouldThrow(final int duration) {
         final Film user = correctFilm().duration(duration).build();
-        final ValidationException exception = assertThrows(ValidationException.class, () -> filmValidator.validate(user));
+        final ValidationException exception =
+            assertThrows(ValidationException.class, () -> filmValidator.validate(user));
         assertEquals("Duration is not valid", exception.getMessage());
     }
 

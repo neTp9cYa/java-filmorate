@@ -21,8 +21,8 @@ import ru.yandex.practicum.filmorate.validator.FilmValidator;
 public class FilmController {
 
     private final Map<Integer, Film> films = new HashMap<>();
-    private int nextId = 1;
     private final FilmValidator filmValidator = new FilmValidator();
+    private int nextId = 1;
 
     @PostMapping
     public Film create(@RequestBody final Film film) {

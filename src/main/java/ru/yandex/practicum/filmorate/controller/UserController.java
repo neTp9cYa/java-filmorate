@@ -21,8 +21,8 @@ import ru.yandex.practicum.filmorate.validator.UserValidator;
 public class UserController {
 
     private final Map<Integer, User> users = new HashMap<>();
-    private int nextId = 1;
     private final UserValidator userValidator = new UserValidator();
+    private int nextId = 1;
 
     @PostMapping
     public User create(@RequestBody final User user) {
