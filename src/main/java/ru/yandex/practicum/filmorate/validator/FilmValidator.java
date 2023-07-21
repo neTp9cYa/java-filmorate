@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 @Slf4j
 public class FilmValidator {
+    private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     public void validate(final Film film) {
 
         // название не может быть пустым
@@ -22,7 +23,7 @@ public class FilmValidator {
         }
 
         // дата релиза — не раньше 28 декабря 1895 года;
-        if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+        if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
             log.warn("Film release date  is not valid: {}", film);
             throw new ValidationException("Release date is not valid");
         }

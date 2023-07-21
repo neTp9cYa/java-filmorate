@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 class FilmValidatorTest {
     private final FilmValidator filmValidator = new FilmValidator();
+    private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     @ParameterizedTest
     @NullSource
@@ -49,7 +50,7 @@ class FilmValidatorTest {
     @Test
     void validateOldReleaseDateShouldNotThrow() {
         final Film film = correctFilm()
-            .releaseDate(LocalDate.of(1895, 12, 28))
+            .releaseDate(MIN_RELEASE_DATE)
             .build();
         assertDoesNotThrow(() -> filmValidator.validate(film));
     }
@@ -57,7 +58,7 @@ class FilmValidatorTest {
     @Test
     void validateTooOldReleaseDateShouldThrow() {
         final Film film = correctFilm()
-            .releaseDate(LocalDate.of(1895, 12, 28).minusDays(1))
+            .releaseDate(MIN_RELEASE_DATE.minusDays(1))
             .build();
         final ValidationException exception =
             assertThrows(ValidationException.class, () -> filmValidator.validate(film));
@@ -78,7 +79,7 @@ class FilmValidatorTest {
             .id(1)
             .name("test")
             .description("test")
-            .releaseDate(LocalDate.of(1895, 12, 28).plusDays(1))
+            .releaseDate(MIN_RELEASE_DATE.plusDays(1))
             .duration(1);
     }
 
