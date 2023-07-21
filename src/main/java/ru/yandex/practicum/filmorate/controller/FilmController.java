@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;

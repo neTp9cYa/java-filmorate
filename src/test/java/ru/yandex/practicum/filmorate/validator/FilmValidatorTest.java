@@ -11,14 +11,13 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 
 @DisplayName("FilmValidator")
 class FilmValidatorTest {
 
-    private final FilmValidator filmValidator = new FilmValidator();
     private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private static final int MAX_DESCRIPTION_LENGTH = 200;
+    private final FilmValidator filmValidator = new FilmValidator();
 
     @ParameterizedTest
     @NullSource
