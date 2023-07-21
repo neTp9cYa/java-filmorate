@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.validator.FilmValidator;
 import ru.yandex.practicum.filmorate.validator.UserValidator;
 
 @RestController
@@ -20,9 +22,15 @@ import ru.yandex.practicum.filmorate.validator.UserValidator;
 @Slf4j
 public class UserController {
 
-    private final Map<Integer, User> users = new HashMap<>();
-    private final UserValidator userValidator = new UserValidator();
-    private int nextId = 1;
+    private final Map<Integer, User> users;
+    private final UserValidator userValidator;
+    private int nextId;
+
+    public UserController() {
+        users = new LinkedHashMap<>();
+        userValidator = new UserValidator();
+        nextId = 1;
+    }
 
     @PostMapping
     public User create(@RequestBody final User user) {

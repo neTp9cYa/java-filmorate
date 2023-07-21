@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,9 +21,15 @@ import ru.yandex.practicum.filmorate.validator.FilmValidator;
 @Slf4j
 public class FilmController {
 
-    private final Map<Integer, Film> films = new HashMap<>();
-    private final FilmValidator filmValidator = new FilmValidator();
-    private int nextId = 1;
+    private final Map<Integer, Film> films;
+    private final FilmValidator filmValidator;
+    private int nextId;
+
+    public FilmController() {
+        films = new LinkedHashMap<>();
+        filmValidator = new FilmValidator();
+        nextId = 1;
+    }
 
     @PostMapping
     public Film create(@RequestBody final Film film) {
