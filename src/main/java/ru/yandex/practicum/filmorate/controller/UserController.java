@@ -32,16 +32,18 @@ public class UserController {
 
     @PostMapping
     public User create(@RequestBody final User user) {
+        log.trace("User is creating: {}", user);
         userValidator.validate(user);
         transform(user);
         setId(user);
         users.put(user.getId(), user);
-        log.warn("User was created: {}", user);
+        log.trace("User is created: {}", user);
         return user;
     }
 
     @PutMapping
     public User update(@RequestBody final User user) {
+        log.trace("User is updating: {}", user);
         userValidator.validate(user);
         transform(user);
         if (!users.containsKey(user.getId())) {
@@ -49,7 +51,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
         }
         users.put(user.getId(), user);
-        log.warn("User was updated: {}", user);
+        log.trace("User is updated: {}", user);
         return user;
     }
 

@@ -32,22 +32,24 @@ public class FilmController {
 
     @PostMapping
     public Film create(@RequestBody final Film film) {
+        log.trace("Film is creating: {}", film);
         filmValidator.validate(film);
         setId(film);
         films.put(film.getId(), film);
-        log.warn("Film was created: {}", film);
+        log.trace("Film is created: {}", film);
         return film;
     }
 
     @PutMapping
     public Film update(@RequestBody final Film film) {
+        log.trace("Film is updating: {}", film);
         filmValidator.validate(film);
         if (!films.containsKey(film.getId())) {
             log.warn("Try to update not existed film: {}", film);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
         }
         films.put(film.getId(), film);
-        log.warn("Film was updated: {}", film);
+        log.trace("Film is updated: {}", film);
         return film;
     }
 
