@@ -73,7 +73,7 @@ public class FilmService {
         filmStorage.update(film);
     }
 
-    public Collection<User> findTop() {
-        throw new RuntimeException();
+    public Collection<Film> findTop(final int limit) {
+        return filmStorage.findTop(limit);
     }
 }

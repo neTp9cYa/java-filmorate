@@ -11,4 +11,6 @@ public interface FilmStorage {
     Film findOne(final int id);
 
     Collection<Film> findAll();
+
+    Collection<Film> findTop(final int limit);
 }

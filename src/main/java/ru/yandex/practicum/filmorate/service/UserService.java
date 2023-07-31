@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -78,7 +80,22 @@ public class UserService {
     }
 
     public Collection<User> findMutualFriend(final int userId1, final int userId2) {
-        throw new RuntimeException();
+        final User user1 = userStorage.findOne(userId1);
+        if (user1 == null) {
+            log.warn("Try to get mutual friends for non existed user, user id = {}", userId1);
+            throw new UpdateException(String.format("User does not exists, id = %d", userId1));
+        }
+
+        final User user2 = userStorage.findOne(userId2);
+        if (user2 == null) {
+            log.warn("Try to get mutual friends for non existed user, user id = {}", userId2);
+            throw new UpdateException(String.format("User does not exists, id = %d", userId2));
+        }
+
+        return user1.getFriends().stream()
+            .filter(user2.getFriends()::contains)
+            .map(userStorage::findOne)
+            .collect(Collectors.toList());
     }
 
     private void transform(final User user) {
