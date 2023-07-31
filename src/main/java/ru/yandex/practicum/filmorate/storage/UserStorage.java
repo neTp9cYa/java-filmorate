@@ -8,5 +8,7 @@ public interface UserStorage {
 
     User update(final User user);
 
+    User findOne(final int id);
+
     Collection<User> findAll();
 }

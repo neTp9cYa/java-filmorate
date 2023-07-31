@@ -19,12 +19,14 @@ public class InMemoryUserStorage implements UserStorage {
         this.nextId = 1;
     }
 
+    @Override
     public User create(final User user) {
         setId(user);
         users.put(user.getId(), user);
         return user;
     }
 
+    @Override
     public User update(final User user) {
         if (!users.containsKey(user.getId())) {
             log.warn("Try to update not existed user: {}", user);
@@ -34,6 +36,12 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
+    @Override
+    public User findOne(int id) {
+        return users.get(id);
+    }
+
+    @Override
     public Collection<User> findAll() {
         return users.values();
     }

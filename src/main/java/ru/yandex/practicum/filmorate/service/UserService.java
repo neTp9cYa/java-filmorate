@@ -1,9 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
 import java.util.Collection;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.UpdateException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.validator.UserValidator;
@@ -32,6 +35,50 @@ public class UserService {
 
     public Collection<User> findAll() {
         return userStorage.findAll();
+    }
+
+    public void addFriend(final int whoId, final int whomId) {
+        final User who = userStorage.findOne(whoId);
+        if (who == null) {
+            log.warn("Try to add friend on behalf of non existed user, user id = {}", whoId);
+            throw new UpdateException(String.format("User does not exists, id = %d", whoId));
+        }
+
+        final User whom = userStorage.findOne(whomId);
+        if (whom == null) {
+            log.warn("Try to add non existed user as friend, user id = {}", whomId);
+            throw new UpdateException(String.format("User does not exists, id = %d", whomId));
+        }
+
+        who.getFriends().add(whom.getId());
+        whom.getFriends().add(who.getId());
+
+        userStorage.update(who);
+        userStorage.update(whom);
+    }
+
+    public void removeFriend(final int whoId, final int whomId) {
+        final User who = userStorage.findOne(whoId);
+        if (who == null) {
+            log.warn("Try to remove friend on behalf of non existed user, user id = {}", whoId);
+            throw new UpdateException(String.format("User does not exists, id = %d", whoId));
+        }
+
+        final User whom = userStorage.findOne(whomId);
+        if (whom == null) {
+            log.warn("Try to remove non existed user from friends, user id = {}", whomId);
+            throw new UpdateException(String.format("User does not exists, id = %d", whomId));
+        }
+
+        who.getFriends().remove(whom.getId());
+        whom.getFriends().remove(who.getId());
+
+        userStorage.update(who);
+        userStorage.update(whom);
+    }
+
+    public Collection<User> findMutualFriend(final int userId1, final int userId2) {
+        throw new RuntimeException();
     }
 
     private void transform(final User user) {
