@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,5 +46,32 @@ public class UserController {
     @GetMapping
     public Collection<User> findAll() {
         return userService.findAll();
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> findFriends(@PathVariable final int id) {
+        return userService.findFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> findCommonFriends(@PathVariable final int id,
+                                              @PathVariable final int otherId) {
+        return userService.findCommonFriends(id, otherId);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable final int id,
+                          @PathVariable final int friendId) {
+        log.trace("Start to process of add friend request: user {} and friend {}", id, friendId);
+        userService.addFriend(id, friendId);
+        log.trace("End to process of add friend request: user {} and friend {}", id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable final int id,
+                             @PathVariable final int friendId) {
+        log.trace("Start to process of remove friend request: user {} and friend {}", id, friendId);
+        userService.addFriend(id, friendId);
+        log.trace("End to process of remove friend request: user {} and friend {}", id, friendId);
     }
 }

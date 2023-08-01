@@ -40,63 +40,76 @@ public class UserService {
         return userStorage.findAll();
     }
 
-    public Collection<User> findMutualFriend(final int userId1, final int userId2) {
-        final User user1 = userStorage.findOne(userId1);
-        if (user1 == null) {
-            log.warn("Try to get mutual friends for non existed user, user id = {}", userId1);
-            throw new UpdateException(String.format("User does not exists, id = %d", userId1));
+    public Collection<User> findFriends(final int id) {
+        final User user = userStorage.findOne(id);
+        if (user == null) {
+            log.warn("Try to get friends for non existed user, user id = {}", id);
+            throw new UpdateException(String.format("User does not exists, id = %d", id));
         }
 
-        final User user2 = userStorage.findOne(userId2);
-        if (user2 == null) {
-            log.warn("Try to get mutual friends for non existed user, user id = {}", userId2);
-            throw new UpdateException(String.format("User does not exists, id = %d", userId2));
-        }
-
-        return user1.getFriends().stream()
-            .filter(user2.getFriends()::contains)
+        return user.getFriends()
+            .stream()
             .map(userStorage::findOne)
             .collect(Collectors.toList());
     }
 
-    public void addFriend(final int whoId, final int whomId) {
-        final User who = userStorage.findOne(whoId);
-        if (who == null) {
-            log.warn("Try to add friend on behalf of non existed user, user id = {}", whoId);
-            throw new UpdateException(String.format("User does not exists, id = %d", whoId));
+    public Collection<User> findCommonFriends(final int id, final int otherId) {
+        final User user = userStorage.findOne(id);
+        if (user == null) {
+            log.warn("Try to get mutual friends for non existed user, user id = {}", id);
+            throw new UpdateException(String.format("User does not exists, id = %d", id));
         }
 
-        final User whom = userStorage.findOne(whomId);
-        if (whom == null) {
-            log.warn("Try to add non existed user as friend, user id = {}", whomId);
-            throw new UpdateException(String.format("User does not exists, id = %d", whomId));
+        final User otherUser = userStorage.findOne(otherId);
+        if (otherUser == null) {
+            log.warn("Try to get mutual friends for non existed user, user id = {}", otherId);
+            throw new UpdateException(String.format("User does not exists, id = %d", otherId));
         }
 
-        who.getFriends().add(whom.getId());
-        whom.getFriends().add(who.getId());
-
-        userStorage.update(who);
-        userStorage.update(whom);
+        return user.getFriends().stream()
+            .filter(otherUser.getFriends()::contains)
+            .map(userStorage::findOne)
+            .collect(Collectors.toList());
     }
 
-    public void removeFriend(final int whoId, final int whomId) {
-        final User who = userStorage.findOne(whoId);
-        if (who == null) {
-            log.warn("Try to remove friend on behalf of non existed user, user id = {}", whoId);
-            throw new UpdateException(String.format("User does not exists, id = %d", whoId));
+    public void addFriend(final int userId, final int friendId) {
+        final User user = userStorage.findOne(userId);
+        if (user == null) {
+            log.warn("Try to add friend on behalf of non existed user, user id = {}", userId);
+            throw new UpdateException(String.format("User does not exists, id = %d", userId));
         }
 
-        final User whom = userStorage.findOne(whomId);
-        if (whom == null) {
-            log.warn("Try to remove non existed user from friends, user id = {}", whomId);
-            throw new UpdateException(String.format("User does not exists, id = %d", whomId));
+        final User friend = userStorage.findOne(friendId);
+        if (friend == null) {
+            log.warn("Try to add non existed user as friend, user id = {}", friendId);
+            throw new UpdateException(String.format("User does not exists, id = %d", friendId));
         }
 
-        who.getFriends().remove(whom.getId());
-        whom.getFriends().remove(who.getId());
+        user.getFriends().add(friend.getId());
+        friend.getFriends().add(user.getId());
 
-        userStorage.update(who);
-        userStorage.update(whom);
+        userStorage.update(user);
+        userStorage.update(friend);
+    }
+
+    public void removeFriend(final int userId, final int friendId) {
+        final User user = userStorage.findOne(userId);
+        if (user == null) {
+            log.warn("Try to remove friend on behalf of non existed user, user id = {}", userId);
+            throw new UpdateException(String.format("User does not exists, id = %d", userId));
+        }
+
+        final User friend = userStorage.findOne(friendId);
+        if (friend == null) {
+            log.warn("Try to remove non existed user from friends, user id = {}", friendId);
+            throw new UpdateException(String.format("User does not exists, id = %d", friendId));
+        }
+
+        user.getFriends().remove(friend.getId());
+        friend.getFriends().remove(user.getId());
+
+        userStorage.update(user);
+        userStorage.update(friend);
     }
 
     private void transform(final User user) {

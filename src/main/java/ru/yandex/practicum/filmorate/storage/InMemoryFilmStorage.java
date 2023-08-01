@@ -64,8 +64,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findTop(final int limit) {
-        return topFilms.stream().limit(limit).collect(Collectors.toList());
+    public Collection<Film> findPopular(final int count) {
+        return topFilms.stream().limit(count).collect(Collectors.toList());
     }
 
     private void setId(final Film fild) {

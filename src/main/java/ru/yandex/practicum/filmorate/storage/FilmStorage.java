@@ -12,5 +12,5 @@ public interface FilmStorage {
 
     Collection<Film> findAll();
 
-    Collection<Film> findTop(final int limit);
+    Collection<Film> findPopular(final int count);
 }

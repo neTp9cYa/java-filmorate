@@ -41,8 +41,8 @@ public class FilmService {
         return filmStorage.findAll();
     }
 
-    public Collection<Film> findTop(final int limit) {
-        return filmStorage.findTop(limit);
+    public Collection<Film> findPopular(final int count) {
+        return filmStorage.findPopular(count);
     }
 
     public void addLike(final int userId, final int filmId) {
