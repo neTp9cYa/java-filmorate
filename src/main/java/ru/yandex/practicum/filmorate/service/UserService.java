@@ -1,14 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.UpdateException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.validator.UserValidator;
@@ -35,8 +32,31 @@ public class UserService {
         return updatedUser;
     }
 
+    public User findOne(final int id) {
+        return userStorage.findOne(id);
+    }
+
     public Collection<User> findAll() {
         return userStorage.findAll();
+    }
+
+    public Collection<User> findMutualFriend(final int userId1, final int userId2) {
+        final User user1 = userStorage.findOne(userId1);
+        if (user1 == null) {
+            log.warn("Try to get mutual friends for non existed user, user id = {}", userId1);
+            throw new UpdateException(String.format("User does not exists, id = %d", userId1));
+        }
+
+        final User user2 = userStorage.findOne(userId2);
+        if (user2 == null) {
+            log.warn("Try to get mutual friends for non existed user, user id = {}", userId2);
+            throw new UpdateException(String.format("User does not exists, id = %d", userId2));
+        }
+
+        return user1.getFriends().stream()
+            .filter(user2.getFriends()::contains)
+            .map(userStorage::findOne)
+            .collect(Collectors.toList());
     }
 
     public void addFriend(final int whoId, final int whomId) {
@@ -77,25 +97,6 @@ public class UserService {
 
         userStorage.update(who);
         userStorage.update(whom);
-    }
-
-    public Collection<User> findMutualFriend(final int userId1, final int userId2) {
-        final User user1 = userStorage.findOne(userId1);
-        if (user1 == null) {
-            log.warn("Try to get mutual friends for non existed user, user id = {}", userId1);
-            throw new UpdateException(String.format("User does not exists, id = %d", userId1));
-        }
-
-        final User user2 = userStorage.findOne(userId2);
-        if (user2 == null) {
-            log.warn("Try to get mutual friends for non existed user, user id = {}", userId2);
-            throw new UpdateException(String.format("User does not exists, id = %d", userId2));
-        }
-
-        return user1.getFriends().stream()
-            .filter(user2.getFriends()::contains)
-            .map(userStorage::findOne)
-            .collect(Collectors.toList());
     }
 
     private void transform(final User user) {

@@ -33,8 +33,16 @@ public class FilmService {
         return updatedFilm;
     }
 
+    public Film findOne(final int id) {
+        return filmStorage.findOne(id);
+    }
+
     public Collection<Film> findAll() {
         return filmStorage.findAll();
+    }
+
+    public Collection<Film> findTop(final int limit) {
+        return filmStorage.findTop(limit);
     }
 
     public void addLike(final int userId, final int filmId) {
@@ -71,9 +79,5 @@ public class FilmService {
         likes.remove(filmId);
         film.setLikes(likes);
         filmStorage.update(film);
-    }
-
-    public Collection<Film> findTop(final int limit) {
-        return filmStorage.findTop(limit);
     }
 }

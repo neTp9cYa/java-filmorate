@@ -4,6 +4,7 @@ import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +35,11 @@ public class FilmController {
         final Film updatedFilm = filmService.update(film);
         log.trace("End to process of film update request: {}", film);
         return updatedFilm;
+    }
+
+    @GetMapping("/{id}")
+    public Film findOne(@PathVariable final int id) {
+        return filmService.findOne(id);
     }
 
     @GetMapping

@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +22,15 @@ public class InMemoryFilmStorage implements FilmStorage {
         this.films = new LinkedHashMap<>();
         this.nextId = 1;
         this.topFilms = new TreeSet<>((film1, film2) -> {
-            if (film1.getId() == film2.getId()) { return 0; }
+            if (film1.getId() == film2.getId()) {
+                return 0;
+            }
 
-            if (film1.getLikes().size() >= film2.getLikes().size()) { return 1; }
-            else { return -1; }
+            if (film1.getLikes().size() >= film2.getLikes().size()) {
+                return 1;
+            } else {
+                return -1;
+            }
         });
     }
 
