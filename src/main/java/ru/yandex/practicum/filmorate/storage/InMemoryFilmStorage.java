@@ -1,61 +1,61 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.UpdateException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Integer, Film> films;
-    private final Set<Film> topFilms;
+    private final Set<Film> popularFilms;
     private int nextId;
 
     public InMemoryFilmStorage() {
         this.films = new LinkedHashMap<>();
         this.nextId = 1;
-        this.topFilms = new TreeSet<>((film1, film2) -> {
-            if (film1.getId() == film2.getId()) {
+        this.popularFilms = new TreeSet<>((changedFilm, storedFilm) -> {
+            if (storedFilm.getId() == changedFilm.getId()) {
                 return 0;
             }
-
-            if (film1.getLikes().size() >= film2.getLikes().size()) {
-                return 1;
-            } else {
-                return -1;
+            if (storedFilm.getLikes().size() != changedFilm.getLikes().size()) {
+                return storedFilm.getLikes().size() - changedFilm.getLikes().size();
             }
+            return storedFilm.getId() - changedFilm.getId();
         });
     }
 
     @Override
     public Film create(final Film film) {
         setId(film);
+        setDefaults(film);
         films.put(film.getId(), film);
-        topFilms.add(film);
+        popularFilms.add(film);
         return film;
     }
 
     @Override
-    public Film update(final Film film) {
+    public Optional<Film> update(final Film film) {
         if (!films.containsKey(film.getId())) {
-            log.warn("Try to update not existed film: {}", film);
-            throw new UpdateException("Not found");
+            return Optional.empty();
         }
+        setDefaults(film);
         films.put(film.getId(), film);
-        topFilms.add(film);
-        return film;
+        popularFilms.add(film);
+        return Optional.of(film);
     }
 
     @Override
-    public Film findOne(int id) {
-        return films.get(id);
+    public Optional<Film> findOne(int id) {
+        return Optional.ofNullable(films.get(id));
     }
 
     @Override
@@ -65,11 +65,17 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> findPopular(final int count) {
-        return topFilms.stream().limit(count).collect(Collectors.toList());
+        return popularFilms.stream().limit(count).collect(Collectors.toList());
     }
 
     private void setId(final Film fild) {
         fild.setId(nextId);
         nextId++;
+    }
+
+    private void setDefaults(final Film film) {
+        if (film.getLikes() == null) {
+            film.setLikes(new HashSet<>());
+        }
     }
 }
