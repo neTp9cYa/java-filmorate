@@ -24,17 +24,17 @@ public class UserController {
 
     @PostMapping
     public User create(@RequestBody final User user) {
-        log.trace("Start to process of user creation request: {}", user);
+        log.info("Start to process of user creation request: {}", user);
         final User createdUser = userService.create(user);
-        log.trace("End to process of user creation request: {}", user);
+        log.info("End to process of user creation request: {}", user);
         return createdUser;
     }
 
     @PutMapping
     public User update(@RequestBody final User user) {
-        log.trace("Start to process of user update request: {}", user);
+        log.info("Start to process of user update request: {}", user);
         final User updatedUser = userService.update(user);
-        log.trace("End to process of user update request: {}", user);
+        log.info("End to process of user update request: {}", user);
         return updatedUser;
     }
 
@@ -62,16 +62,16 @@ public class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable final int id,
                           @PathVariable final int friendId) {
-        log.trace("Start to process of add friend request: user {} and friend {}", id, friendId);
+        log.info("Start to process of add friend request: user {} and friend {}", id, friendId);
         userService.addFriend(id, friendId);
-        log.trace("End to process of add friend request: user {} and friend {}", id, friendId);
+        log.info("End to process of add friend request: user {} and friend {}", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable final int id,
                              @PathVariable final int friendId) {
-        log.trace("Start to process of remove friend request: user {} and friend {}", id, friendId);
+        log.info("Start to process of remove friend request: user {} and friend {}", id, friendId);
         userService.addFriend(id, friendId);
-        log.trace("End to process of remove friend request: user {} and friend {}", id, friendId);
+        log.info("End to process of remove friend request: user {} and friend {}", id, friendId);
     }
 }

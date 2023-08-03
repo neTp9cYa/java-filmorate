@@ -25,17 +25,17 @@ public class FilmController {
 
     @PostMapping
     public Film create(@RequestBody final Film film) {
-        log.trace("Start to process of filn creation request: {}", film);
+        log.info("Start to process of filn creation request: {}", film);
         final Film createddFilm = filmService.create(film);
-        log.trace("End to process of filn creation request: {}", film);
+        log.info("End to process of filn creation request: {}", film);
         return createddFilm;
     }
 
     @PutMapping
     public Film update(@RequestBody final Film film) {
-        log.trace("Start to process of film update request: {}", film);
+        log.info("Start to process of film update request: {}", film);
         final Film updatedFilm = filmService.update(film);
-        log.trace("End to process of film update request: {}", film);
+        log.info("End to process of film update request: {}", film);
         return updatedFilm;
     }
 
@@ -57,17 +57,17 @@ public class FilmController {
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable("id") final int filmId,
                         @PathVariable final int userId) {
-        log.trace("Start to process of add like request: film id {} and user id {}", filmId, userId);
-        filmService.addLike(userId, filmId);
-        log.trace("End to process of add like request: film id {} and user id {}", filmId, userId);
+        log.info("Start to process of add like request: film id {} and user id {}", filmId, userId);
+        filmService.addLike(filmId, userId);
+        log.info("End to process of add like request: film id {} and user id {}", filmId, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeLike(@PathVariable("id") final int filmId,
                            @PathVariable final int userId) {
-        log.trace("Start to process of remove like request: film id {} and user id {}", filmId, userId);
-        filmService.removeLike(userId, filmId);
-        log.trace("End to process of remove like request: film id {} and user id {}", filmId, userId);
+        log.info("Start to process of remove like request: film id {} and user id {}", filmId, userId);
+        filmService.removeLike(filmId, userId);
+        log.info("End to process of remove like request: film id {} and user id {}", filmId, userId);
     }
 
 }

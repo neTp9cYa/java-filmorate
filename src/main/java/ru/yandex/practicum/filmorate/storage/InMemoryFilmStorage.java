@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -10,47 +11,53 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
+    private final UserStorage userStorage;
     private final Map<Integer, Film> films;
-    private final Set<Film> popularFilms;
+    private final Set<Integer> popularFilms;
+    private Map<Integer, Set<Integer>> likes = new HashMap<>();
     private int nextId;
 
-    public InMemoryFilmStorage() {
+    public InMemoryFilmStorage(final UserStorage userStorage) {
+        this.userStorage = userStorage;
         this.films = new LinkedHashMap<>();
         this.nextId = 1;
-        this.popularFilms = new TreeSet<>((changedFilm, storedFilm) -> {
-            if (storedFilm.getId() == changedFilm.getId()) {
+        this.popularFilms = new TreeSet<>((changedFilmId, storedFilmId) -> {
+            if (storedFilmId == changedFilmId) {
                 return 0;
             }
-            if (storedFilm.getLikes().size() != changedFilm.getLikes().size()) {
-                return storedFilm.getLikes().size() - changedFilm.getLikes().size();
+            final Set<Integer> storedFilmLikes = likes.get(storedFilmId);
+            final Set<Integer> changedFilmLikes = likes.get(changedFilmId);
+            if (storedFilmLikes.size() != changedFilmLikes.size()) {
+                return storedFilmLikes.size() - changedFilmLikes.size();
             }
-            return storedFilm.getId() - changedFilm.getId();
+            return storedFilmId - changedFilmId;
         });
     }
 
     @Override
     public Film create(final Film film) {
         setId(film);
-        setDefaults(film);
         films.put(film.getId(), film);
-        popularFilms.add(film);
+        likes.put(film.getId(), new HashSet<>());
+        popularFilms.add(film.getId());
         return film;
     }
 
     @Override
-    public Optional<Film> update(final Film film) {
+    public void update(final Film film) {
         if (!films.containsKey(film.getId())) {
-            return Optional.empty();
+            log.warn("Try to update non existed film, film id = {}", film.getId());
+            throw new NotFoundException(String.format("Film does not exists, id = %d", film.getId()));
         }
-        setDefaults(film);
+
         films.put(film.getId(), film);
-        popularFilms.add(film);
-        return Optional.of(film);
     }
 
     @Override
@@ -65,17 +72,52 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> findPopular(final int count) {
-        return popularFilms.stream().limit(count).collect(Collectors.toList());
+        return popularFilms
+            .stream()
+            .limit(count)
+            .map(this::findOne)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public void addLike(final int filmId, final int userId) {
+        if (!films.containsKey(filmId)) {
+            log.warn("Try to add like to non existed film, film id = {}", filmId);
+            throw new NotFoundException(String.format("Film does not exists, id = %d", filmId));
+        }
+
+        final Optional<User> userOpt = userStorage.findOne(userId);
+        if (userOpt.isEmpty()) {
+            log.warn("Try to add like on behalf of non existed user, user id = {}", userId);
+            throw new NotFoundException(String.format("User does not exists, id = %d", userId));
+        }
+
+        popularFilms.remove(filmId);
+        likes.get(filmId).add(userId);
+        popularFilms.add(filmId);
+    }
+
+    @Override
+    public void removeLike(final int filmId, final int userId) {
+        if (!films.containsKey(filmId)) {
+            log.warn("Try to remove like from non existed film, film id = {}", filmId);
+            throw new NotFoundException(String.format("Film does not exists, id = %d", filmId));
+        }
+
+        final Optional<User> userOpt = userStorage.findOne(userId);
+        if (userOpt.isEmpty()) {
+            log.warn("Try to remove like on behalf of non existed user, user id = {}", userId);
+            throw new NotFoundException(String.format("User does not exists, id = %d", userId));
+        }
+
+        popularFilms.remove(filmId);
+        likes.get(filmId).remove(userId);
+        popularFilms.add(filmId);
     }
 
     private void setId(final Film fild) {
         fild.setId(nextId);
         nextId++;
-    }
-
-    private void setDefaults(final Film film) {
-        if (film.getLikes() == null) {
-            film.setLikes(new HashSet<>());
-        }
     }
 }
