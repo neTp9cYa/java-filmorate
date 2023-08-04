@@ -37,7 +37,6 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public void update(final User user) {
         if (!users.containsKey(user.getId())) {
-            log.warn("Try to update non existed user, user id = {}", user.getId());
             throw new NotFoundException(String.format("User does not exists, id = %d", user.getId()));
         }
         users.put(user.getId(), user);
@@ -56,12 +55,10 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public void addFriend(final int userId, final int friendId) {
         if (!users.containsKey(userId)) {
-            log.warn("Try to add friend on behalf of non existed user, user id = {}", userId);
-            throw new NotFoundException(String.format("User does not exists, id = %d", userId));
+           throw new NotFoundException(String.format("User does not exists, id = %d", userId));
         }
 
         if (!users.containsKey(friendId)) {
-            log.warn("Try to add non existed user as friend, user id = {}", friendId);
             throw new NotFoundException(String.format("User does not exists, id = %d", friendId));
         }
 
@@ -71,12 +68,10 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public void removeFriend(final int userId, final int friendId) {
         if (!users.containsKey(userId)) {
-            log.warn("Try to remove friend on behalf of non existed user, user id = {}", userId);
             throw new NotFoundException(String.format("User does not exists, id = %d", userId));
         }
 
         if (!users.containsKey(friendId)) {
-            log.warn("Try to remove non existed user from friends, user id = {}", friendId);
             throw new NotFoundException(String.format("User does not exists, id = %d", friendId));
         }
 
@@ -86,7 +81,6 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Collection<User> findFriends(int id) {
         if (!users.containsKey(id)) {
-            log.warn("Try to get friends for non existed user, user id = {}", id);
             throw new NotFoundException(String.format("User does not exists, id = %d", id));
         }
 
@@ -100,13 +94,11 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Collection<User> findCommonFriends(final int id, final int otherId) {
         if (!users.containsKey(id)) {
-            log.warn("Try to get mutual friends for non existed user, user id = {}", id);
-            throw new NotFoundException(String.format("User does not exists, id = %d", id));
+             throw new NotFoundException(String.format("User does not exists, id = %d", id));
         }
 
         if (!users.containsKey(otherId)) {
-            log.warn("Try to get mutual friends for non existed user, user id = {}", otherId);
-            throw new NotFoundException(String.format("User does not exists, id = %d", otherId));
+             throw new NotFoundException(String.format("User does not exists, id = %d", otherId));
         }
 
         final Set<Integer> userFriends = friends.get(id);

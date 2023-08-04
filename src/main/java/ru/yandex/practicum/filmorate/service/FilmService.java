@@ -34,7 +34,6 @@ public class FilmService {
     public Film findOne(final int id) {
         final Optional<Film> filmOpt = filmStorage.findOne(id);
         if (filmOpt.isEmpty()) {
-            log.warn("Try to get non existed film, film id = {}", id);
             throw new NotFoundException(String.format("Film does not exists, id = %d", id));
         }
         return filmOpt.get();

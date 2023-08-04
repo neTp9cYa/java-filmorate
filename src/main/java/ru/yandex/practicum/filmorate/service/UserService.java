@@ -34,7 +34,6 @@ public class UserService {
     public User findOne(final int id) {
         final Optional<User> userOpt = userStorage.findOne(id);
         if (userOpt.isEmpty()) {
-            log.warn("Try to get non existed user, user id = {}", id);
             throw new NotFoundException(String.format("User does not exists, id = %d", id));
         }
         return userOpt.get();

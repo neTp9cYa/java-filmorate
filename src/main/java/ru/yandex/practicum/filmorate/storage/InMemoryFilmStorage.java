@@ -53,7 +53,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public void update(final Film film) {
         if (!films.containsKey(film.getId())) {
-            log.warn("Try to update non existed film, film id = {}", film.getId());
             throw new NotFoundException(String.format("Film does not exists, id = %d", film.getId()));
         }
 
@@ -83,13 +82,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public void addLike(final int filmId, final int userId) {
         if (!films.containsKey(filmId)) {
-            log.warn("Try to add like to non existed film, film id = {}", filmId);
-            throw new NotFoundException(String.format("Film does not exists, id = %d", filmId));
+           throw new NotFoundException(String.format("Film does not exists, id = %d", filmId));
         }
 
         final Optional<User> userOpt = userStorage.findOne(userId);
         if (userOpt.isEmpty()) {
-            log.warn("Try to add like on behalf of non existed user, user id = {}", userId);
             throw new NotFoundException(String.format("User does not exists, id = %d", userId));
         }
 
@@ -101,13 +98,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public void removeLike(final int filmId, final int userId) {
         if (!films.containsKey(filmId)) {
-            log.warn("Try to remove like from non existed film, film id = {}", filmId);
             throw new NotFoundException(String.format("Film does not exists, id = %d", filmId));
         }
 
         final Optional<User> userOpt = userStorage.findOne(userId);
         if (userOpt.isEmpty()) {
-            log.warn("Try to remove like on behalf of non existed user, user id = {}", userId);
             throw new NotFoundException(String.format("User does not exists, id = %d", userId));
         }
 
