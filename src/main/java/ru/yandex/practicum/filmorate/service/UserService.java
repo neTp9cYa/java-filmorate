@@ -32,11 +32,8 @@ public class UserService {
     }
 
     public User findOne(final int id) {
-        final Optional<User> userOpt = userStorage.findOne(id);
-        if (userOpt.isEmpty()) {
-            throw new NotFoundException(String.format("User does not exists, id = %d", id));
-        }
-        return userOpt.get();
+        return userStorage.findOne(id)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", id)));
     }
 
     public Collection<User> findAll() {

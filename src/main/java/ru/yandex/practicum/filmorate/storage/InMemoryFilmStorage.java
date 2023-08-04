@@ -85,10 +85,8 @@ public class InMemoryFilmStorage implements FilmStorage {
            throw new NotFoundException(String.format("Film does not exists, id = %d", filmId));
         }
 
-        final Optional<User> userOpt = userStorage.findOne(userId);
-        if (userOpt.isEmpty()) {
-            throw new NotFoundException(String.format("User does not exists, id = %d", userId));
-        }
+        userStorage.findOne(userId)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
 
         popularFilms.remove(filmId);
         likes.get(filmId).add(userId);
@@ -101,10 +99,8 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new NotFoundException(String.format("Film does not exists, id = %d", filmId));
         }
 
-        final Optional<User> userOpt = userStorage.findOne(userId);
-        if (userOpt.isEmpty()) {
-            throw new NotFoundException(String.format("User does not exists, id = %d", userId));
-        }
+        userStorage.findOne(userId)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
 
         popularFilms.remove(filmId);
         likes.get(filmId).remove(userId);
