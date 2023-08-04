@@ -1,12 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
 import java.util.Collection;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.validator.FilmValidator;
@@ -26,6 +26,10 @@ public class FilmService {
     }
 
     public Film update(final Film film) {
+        // check if film exists
+        filmStorage.findOne(film.getId())
+            .orElseThrow(() -> new NotFoundException(String.format("Film does not exists, id = %d", film.getId())));
+
         filmValidator.validate(film);
         filmStorage.update(film);
         return film;
@@ -45,10 +49,22 @@ public class FilmService {
     }
 
     public void addLike(final int filmId, final int userId) {
-        filmStorage.addLike(filmId, userId);
+        final Film film = filmStorage.findOne(filmId)
+            .orElseThrow(() -> new NotFoundException(String.format("Film does not exists, id = %d", filmId)));
+
+        final User user = userStorage.findOne(userId)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
+
+        filmStorage.addLike(film.getId(), user.getId());
     }
 
     public void removeLike(final int filmId, final int userId) {
-        filmStorage.removeLike(filmId, userId);
+        final Film film = filmStorage.findOne(filmId)
+            .orElseThrow(() -> new NotFoundException(String.format("Film does not exists, id = %d", filmId)));
+
+        final User user = userStorage.findOne(userId)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
+
+        filmStorage.removeLike(film.getId(), user.getId());
     }
 }

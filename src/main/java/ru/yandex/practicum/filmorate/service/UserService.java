@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import java.util.Collection;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +24,9 @@ public class UserService {
     }
 
     public User update(final User user) {
+        userStorage.findOne(user.getId())
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", user.getId())));
+
         userValidator.validate(user);
         transform(user);
         userStorage.update(user);
@@ -41,21 +43,42 @@ public class UserService {
     }
 
     public Collection<User> findFriends(final int id) {
-        return userStorage.findFriends(id);
+        final User user = userStorage.findOne(id)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", id)));
+
+        return userStorage.findFriends(user.getId());
     }
 
     public Collection<User> findCommonFriends(final int id, final int otherId) {
-        return userStorage.findCommonFriends(id, otherId);
+        final User user = userStorage.findOne(id)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", id)));
+
+        final User otherUser = userStorage.findOne(otherId)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", otherId)));
+
+        return userStorage.findCommonFriends(user.getId(), otherUser.getId());
     }
 
     public void addFriend(final int userId, final int friendId) {
-        userStorage.addFriend(userId, friendId);
-        userStorage.addFriend(friendId, userId);
+        final User user = userStorage.findOne(userId)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
+
+        final User friend = userStorage.findOne(friendId)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", friendId)));
+
+        userStorage.addFriend(user.getId(), friend.getId());
+        userStorage.addFriend(friend.getId(), user.getId());
     }
 
     public void removeFriend(final int userId, final int friendId) {
-        userStorage.removeFriend(userId, friendId);
-        userStorage.removeFriend(friendId, userId);
+        final User user = userStorage.findOne(userId)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
+
+        final User friend = userStorage.findOne(friendId)
+            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", friendId)));
+
+        userStorage.removeFriend(user.getId(), friend.getId());
+        userStorage.removeFriend(friend.getId(), user.getId());
     }
 
     private void transform(final User user) {

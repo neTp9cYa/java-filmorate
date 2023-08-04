@@ -11,21 +11,17 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
-    private final UserStorage userStorage;
     private final Map<Integer, Film> films;
     private final Set<Integer> popularFilms;
     private Map<Integer, Set<Integer>> likes = new HashMap<>();
     private int nextId;
 
-    public InMemoryFilmStorage(final UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public InMemoryFilmStorage() {
         this.films = new LinkedHashMap<>();
         this.nextId = 1;
         this.popularFilms = new TreeSet<>((changedFilmId, storedFilmId) -> {
@@ -52,11 +48,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void update(final Film film) {
-        if (!films.containsKey(film.getId())) {
-            throw new NotFoundException(String.format("Film does not exists, id = %d", film.getId()));
-        }
-
-        films.put(film.getId(), film);
+        films.replace(film.getId(), film);
     }
 
     @Override
@@ -74,20 +66,12 @@ public class InMemoryFilmStorage implements FilmStorage {
         return popularFilms
             .stream()
             .limit(count)
-            .map(this::findOne)
-            .map(Optional::get)
+            .map(films::get)
             .collect(Collectors.toList());
     }
 
     @Override
     public void addLike(final int filmId, final int userId) {
-        if (!films.containsKey(filmId)) {
-           throw new NotFoundException(String.format("Film does not exists, id = %d", filmId));
-        }
-
-        userStorage.findOne(userId)
-            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
-
         popularFilms.remove(filmId);
         likes.get(filmId).add(userId);
         popularFilms.add(filmId);
@@ -95,13 +79,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void removeLike(final int filmId, final int userId) {
-        if (!films.containsKey(filmId)) {
-            throw new NotFoundException(String.format("Film does not exists, id = %d", filmId));
-        }
-
-        userStorage.findOne(userId)
-            .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
-
         popularFilms.remove(filmId);
         likes.get(filmId).remove(userId);
         popularFilms.add(filmId);

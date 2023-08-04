@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 @Component
@@ -36,10 +35,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void update(final User user) {
-        if (!users.containsKey(user.getId())) {
-            throw new NotFoundException(String.format("User does not exists, id = %d", user.getId()));
-        }
-        users.put(user.getId(), user);
+        users.replace(user.getId(), user);
     }
 
     @Override
@@ -54,60 +50,30 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void addFriend(final int userId, final int friendId) {
-        if (!users.containsKey(userId)) {
-           throw new NotFoundException(String.format("User does not exists, id = %d", userId));
-        }
-
-        if (!users.containsKey(friendId)) {
-            throw new NotFoundException(String.format("User does not exists, id = %d", friendId));
-        }
-
         friends.get(userId).add(friendId);
     }
 
     @Override
     public void removeFriend(final int userId, final int friendId) {
-        if (!users.containsKey(userId)) {
-            throw new NotFoundException(String.format("User does not exists, id = %d", userId));
-        }
-
-        if (!users.containsKey(friendId)) {
-            throw new NotFoundException(String.format("User does not exists, id = %d", friendId));
-        }
-
         friends.get(userId).remove(friendId);
     }
 
     @Override
     public Collection<User> findFriends(int id) {
-        if (!users.containsKey(id)) {
-            throw new NotFoundException(String.format("User does not exists, id = %d", id));
-        }
-
         return friends.get(id)
             .stream()
-            .map(this::findOne)
-            .map(Optional::get)
+            .map(users::get)
             .collect(Collectors.toList());
     }
 
     @Override
     public Collection<User> findCommonFriends(final int id, final int otherId) {
-        if (!users.containsKey(id)) {
-             throw new NotFoundException(String.format("User does not exists, id = %d", id));
-        }
-
-        if (!users.containsKey(otherId)) {
-             throw new NotFoundException(String.format("User does not exists, id = %d", otherId));
-        }
-
         final Set<Integer> userFriends = friends.get(id);
         final Set<Integer> otherUserFriends = friends.get(otherId);
 
         return friends.get(id).stream()
             .filter(otherUserFriends::contains)
-            .map(this::findOne)
-            .map(Optional::get)
+            .map(users::get)
             .collect(Collectors.toList());
     }
 
