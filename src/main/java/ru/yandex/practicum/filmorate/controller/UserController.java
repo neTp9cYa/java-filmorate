@@ -1,74 +1,77 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.validator.UserValidator;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@RequiredArgsConstructor
 public class UserController {
 
-    private final Map<Integer, User> users;
-    private final UserValidator userValidator;
-    private int nextId;
-
-    public UserController() {
-        users = new LinkedHashMap<>();
-        userValidator = new UserValidator();
-        nextId = 1;
-    }
+    private final UserService userService;
 
     @PostMapping
     public User create(@RequestBody final User user) {
-        log.trace("User is creating: {}", user);
-        userValidator.validate(user);
-        transform(user);
-        setId(user);
-        users.put(user.getId(), user);
-        log.trace("User is created: {}", user);
-        return user;
+        log.info("Start to process of user creation request: {}", user);
+        final User createdUser = userService.create(user);
+        log.info("End to process of user creation request: {}", user);
+        return createdUser;
     }
 
     @PutMapping
     public User update(@RequestBody final User user) {
-        log.trace("User is updating: {}", user);
-        userValidator.validate(user);
-        transform(user);
-        if (!users.containsKey(user.getId())) {
-            log.warn("Try to update not existed user: {}", user);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
-        }
-        users.put(user.getId(), user);
-        log.trace("User is updated: {}", user);
-        return user;
+        log.info("Start to process of user update request: {}", user);
+        final User updatedUser = userService.update(user);
+        log.info("End to process of user update request: {}", user);
+        return updatedUser;
+    }
+
+    @GetMapping("/{id}")
+    public User findOne(@PathVariable final int id) {
+        return userService.findOne(id);
     }
 
     @GetMapping
     public Collection<User> findAll() {
-        return users.values();
+        return userService.findAll();
     }
 
-    private void transform(final User user) {
-        // имя для отображения может быть пустым — в таком случае будет использован логин;
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
+    @GetMapping("/{id}/friends")
+    public Collection<User> findFriends(@PathVariable final int id) {
+        return userService.findFriends(id);
     }
 
-    private void setId(final User user) {
-        user.setId(nextId);
-        nextId++;
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> findCommonFriends(@PathVariable final int id,
+                                              @PathVariable final int otherId) {
+        return userService.findCommonFriends(id, otherId);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable final int id,
+                          @PathVariable final int friendId) {
+        log.info("Start to process of add friend request: user {} and friend {}", id, friendId);
+        userService.addFriend(id, friendId);
+        log.info("End to process of add friend request: user {} and friend {}", id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable final int id,
+                             @PathVariable final int friendId) {
+        log.info("Start to process of remove friend request: user {} and friend {}", id, friendId);
+        userService.addFriend(id, friendId);
+        log.info("End to process of remove friend request: user {} and friend {}", id, friendId);
     }
 }
