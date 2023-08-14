@@ -3,7 +3,7 @@
 ## База данных
 
 ### Схема
-!(schema)[/docs/schema.png]
+![schema](/docs/schema.png)
 
 #### Рейтинг фильма
 
