@@ -30,6 +30,75 @@
 
 Для взаимной дружбы двух пользоватлей в эту таблицу необходимо добавить две записи
 
+### SQL описание схемы
+
+#### Фильмы
+
+```sql
+CREATE TABLE public.genres (
+	id int4 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE),
+	"name" varchar(50) NOT NULL,
+	CONSTRAINT genres_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE public.films (
+	id int4 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE),
+	"name" varchar(200) NOT NULL,
+	description varchar(200) NULL,
+	release_date date NULL,
+	duration int4 NULL,
+	mpa_rating varchar(5) NULL,
+	like_count int4 NOT NULL,
+	CONSTRAINT films_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE public.film_genres (
+	film_id int4 NOT NULL,
+	genre_id int4 NOT NULL,
+	CONSTRAINT film_genres_pk PRIMARY KEY (film_id, genre_id)
+);
+
+ALTER TABLE public.film_genres ADD CONSTRAINT film_genres_fk_films FOREIGN KEY (film_id) REFERENCES public.films(id);
+ALTER TABLE public.film_genres ADD CONSTRAINT film_genres_fk_genres FOREIGN KEY (genre_id) REFERENCES public.genres(id);
+```
+
+#### Пользователи
+
+```sql
+CREATE TABLE public.users (
+	id int4 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE),
+	email varchar(50) NOT NULL,
+	login varchar(50) NOT NULL,
+	dirthday date NULL,
+	"name" varchar(50) NULL,
+	CONSTRAINT users_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE public.friends (
+  user_id int4 NOT NULL,
+  friend_id int4 NOT NULL,
+  status varchar(11) NULL,
+  CONSTRAINT friends_pk PRIMARY KEY (user_id,friend_id)
+);
+
+ALTER TABLE public.friends ADD CONSTRAINT friends_fk_user_friends FOREIGN KEY (friend_id) REFERENCES public.users(id);
+ALTER TABLE public.friends ADD CONSTRAINT friends_fk_users FOREIGN KEY (user_id) REFERENCES public.users(id);
+```
+
+#### Лайки
+
+```sql
+CREATE TABLE public.likes (
+	film_id int4 NOT NULL,
+	user_id int4 NOT NULL,
+	CONSTRAINT likes_pk PRIMARY KEY (film_id, user_id)
+);
+
+ALTER TABLE public.likes ADD CONSTRAINT likes_fk_films FOREIGN KEY (film_id) REFERENCES public.films(id);
+ALTER TABLE public.likes ADD CONSTRAINT likes_fk_users FOREIGN KEY (user_id) REFERENCES public.users(id);
+```
+
+
 
 ### Примеры запросов
 
@@ -100,6 +169,7 @@ JOIN friends f2 ON f1.friend_id = f2.friend_id
 JOIN users u ON f1.friend_id = u.id 
 WHERE f1.user_id = 1 AND f1.status = 'CONFIRMED' AND f2.user_id = 2 AND f2.status = 'CONFIRMED'
 ```
+
 
 
 
