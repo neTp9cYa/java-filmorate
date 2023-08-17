@@ -5,17 +5,6 @@
 ### Схема
 ![schema](/docs/schema.png)
 
-#### Рейтинг фильма
-
-В таблице films колонка mpa_rating (Motion Picture Association Rating, рейтинг Ассоциации кинокомпаний) хранится в виде строки.
-В этой колонке возможны следующие значения:
-- G — у фильма нет возрастных ограничений,
-- PG — детям рекомендуется смотреть фильм с родителями,
-- PG-13 — детям до 13 лет просмотр не желателен,
-- R — лицам до 17 лет просматривать фильм можно только в присутствии взрослого,
-- NC-17 — лицам до 18 лет просмотр запрещён.
-Это перечисление на вынесено в отдельную таблицу, так как все возможные значения известны и крайне редко меняются.
-
 #### Популярные фильмы
 
 В таблице films поле "like_count" - дополнительное поле для возможности быстрой выборки поулярных фильмов. Оно должно обновляться всякий раз при изменении данных в таблице likes. 
@@ -38,7 +27,14 @@
 CREATE TABLE public.genres (
 	id int4 NOT NULL GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1 NO CYCLE),
 	"name" varchar(50) NOT NULL,
-	CONSTRAINT genres_pk PRIMARY KEY (id)
+	CONSTRAINT genres_pk PRIMARY KEY (id),
+  CONSTRAINT genres_un UNIQUE (name)
+);
+
+CREATE TABLE public.mpa_ratings (
+	name varchar(5) NOT NULL,
+	title varchar(50) NOT NULL,
+	CONSTRAINT mpa_ratings_pk PRIMARY KEY (id)
 );
 
 CREATE TABLE public.films (
@@ -47,10 +43,12 @@ CREATE TABLE public.films (
 	description varchar(200) NULL,
 	release_date date NULL,
 	duration int4 NULL,
-	mpa_rating varchar(5) NULL,
+	mpa_rating_name varchar(5) NULL,
 	like_count int4 NOT NULL,
 	CONSTRAINT films_pk PRIMARY KEY (id)
 );
+
+ALTER TABLE public.films ADD CONSTRAINT films_fk FOREIGN KEY (mpa_rating_name) REFERENCES public.mpa_ratings("name");
 
 CREATE TABLE public.film_genres (
 	film_id int4 NOT NULL,
@@ -58,8 +56,8 @@ CREATE TABLE public.film_genres (
 	CONSTRAINT film_genres_pk PRIMARY KEY (film_id, genre_id)
 );
 
-ALTER TABLE public.film_genres ADD CONSTRAINT film_genres_fk_films FOREIGN KEY (film_id) REFERENCES public.films(id);
-ALTER TABLE public.film_genres ADD CONSTRAINT film_genres_fk_genres FOREIGN KEY (genre_id) REFERENCES public.genres(id);
+ALTER TABLE public.film_genres ADD CONSTRAINT film_genres_fk_films FOREIGN KEY (film_id) REFERENCES public.films(id) ON DELETE CASCADE;
+ALTER TABLE public.film_genres ADD CONSTRAINT film_genres_fk_genres FOREIGN KEY (genre_id) REFERENCES public.genres(id) ON DELETE CASCADE;
 ```
 
 #### Пользователи
@@ -71,7 +69,8 @@ CREATE TABLE public.users (
 	login varchar(50) NOT NULL,
 	dirthday date NULL,
 	"name" varchar(50) NULL,
-	CONSTRAINT users_pk PRIMARY KEY (id)
+	CONSTRAINT users_pk PRIMARY KEY (id),
+  CONSTRAINT users_un UNIQUE (email)
 );
 
 CREATE TABLE public.friends (
@@ -81,8 +80,8 @@ CREATE TABLE public.friends (
   CONSTRAINT friends_pk PRIMARY KEY (user_id,friend_id)
 );
 
-ALTER TABLE public.friends ADD CONSTRAINT friends_fk_user_friends FOREIGN KEY (friend_id) REFERENCES public.users(id);
-ALTER TABLE public.friends ADD CONSTRAINT friends_fk_users FOREIGN KEY (user_id) REFERENCES public.users(id);
+ALTER TABLE public.friends ADD CONSTRAINT friends_fk_user_friends FOREIGN KEY (friend_id) REFERENCES public.users(id) ON DELETE CASCADE;
+ALTER TABLE public.friends ADD CONSTRAINT friends_fk_users FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 ```
 
 #### Лайки
