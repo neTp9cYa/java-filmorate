@@ -9,7 +9,7 @@ public interface UserStorage {
 
     void update(final User user);
 
-    Optional<User> findOne(final int id);
+    Optional<User> findUserById(final int id);
 
     Collection<User> findAll();
 

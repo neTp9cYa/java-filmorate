@@ -9,7 +9,7 @@ public interface FilmStorage {
 
     void update(final Film film);
 
-    Optional<Film> findOne(final int id);
+    Optional<Film> findFilmById(final int id);
 
     Collection<Film> findAll();
 

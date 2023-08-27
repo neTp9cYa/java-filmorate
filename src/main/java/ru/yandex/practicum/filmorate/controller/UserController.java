@@ -71,7 +71,7 @@ public class UserController {
     public void removeFriend(@PathVariable final int id,
                              @PathVariable final int friendId) {
         log.info("Start to process of remove friend request: user {} and friend {}", id, friendId);
-        userService.addFriend(id, friendId);
+        userService.removeFriend(id, friendId);
         log.info("End to process of remove friend request: user {} and friend {}", id, friendId);
     }
 }

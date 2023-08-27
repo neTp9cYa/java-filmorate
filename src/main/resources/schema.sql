@@ -1,85 +1,84 @@
-create table if not exists GENRES
+create table if not exists GENRE
 (
     ID   INTEGER auto_increment,
     NAME CHARACTER VARYING(50) not null,
-    constraint GENRES_PK
+    constraint GENRE_PK
         primary key (ID)
 );
 
-create unique index if not exists GENRES_INDEX_NAME
-    on GENRES (NAME);
-
-create table if not exists MPA_RATINGS
+create table if not exists MPA
 (
-    NAME  CHARACTER VARYING(5)  not null,
-    TITLE CHARACTER VARYING(50) not null,
-    constraint MPA_RATINGS_PK
-        primary key (NAME)
+    ID INTEGER auto_increment,
+    NAME CHARACTER VARYING(5) not null,
+    DESCRIPTION CHARACTER VARYING(100) not null,
+    constraint MPA_PK
+        primary key (ID)
 );
 
-create table if not exists FILMS
+create table if not exists FILM
 (
     ID              INTEGER auto_increment,
     NAME            CHARACTER VARYING(200) not null,
     DESCRIPTION     CHARACTER VARYING(200),
     RELEASE_DATE    DATE,
-    MPA_RATING_NAME CHARACTER VARYING(5),
-    LIKE_COUNT      INTEGER                not null,
-    constraint FILMS_PK
+    MPA_ID          INTEGER,
+    DURATION        INTEGER not null,
+    RATE            INTEGER not null,
+    LIKE_COUNT      INTEGER not null,
+    constraint FILM_PK
         primary key (ID),
-    constraint FILMS_FK_MPA_RATINGS
-        foreign key (MPA_RATING_NAME) references MPA_RATINGS
+    constraint FILM_FK_MPA
+        foreign key (MPA_ID) references MPA
 );
 
-create table if not exists FILM_GENRES
+create table if not exists FILM_GENRE
 (
     FILM_ID  INTEGER not null,
     GENRE_ID INTEGER not null,
-    constraint FILM_GENRES_PK
+    constraint FILM_GENRE_PK
         primary key (FILM_ID, GENRE_ID),
-    constraint FILM_GENRES_FK_FILMS
-        foreign key (FILM_ID) references FILMS
+    constraint FILM_GENRE_FK_FILM
+        foreign key (FILM_ID) references FILM
             on delete cascade,
-    constraint FILM_GENRES_FK_GENRES
-        foreign key (GENRE_ID) references GENRES
+    constraint FILM_GENRE_FK_GENRE
+        foreign key (GENRE_ID) references GENRE
             on delete cascade
 );
 
-create table if not exists USERS
+create table if not exists FILMORATE_USER
 (
     ID       INTEGER auto_increment,
     EMAIL    CHARACTER VARYING(50) not null,
     LOGIN    CHARACTER VARYING(50) not null,
-    DIRTHDAY DATE,
+    BIRTHDAY DATE,
     NAME     CHARACTER VARYING(50),
-    constraint USERS_PK
+    constraint FILMORATE_USER_PK
         primary key (ID)
 );
 
-create table if not exists FRIENDS
+create table if not exists FRIEND
 (
     USER_ID   INTEGER not null,
     FRIEND_ID INTEGER not null,
-    STATUS    CHARACTER VARYING(11),
-    constraint KEY_NAME
+    constraint FRIEND_PK
         primary key (USER_ID, FRIEND_ID),
-    constraint FRIENDS_FK_USERS
-        foreign key (USER_ID) references USERS
+    constraint FRIEND_FK_USER
+        foreign key (USER_ID) references FILMORATE_USER
             on delete cascade,
-    constraint FRIENDS_FK_USER_FRIENDS
-        foreign key (FRIEND_ID) references USERS
+    constraint FRIEND_FK_USER_FRIEND
+        foreign key (FRIEND_ID) references FILMORATE_USER
             on delete cascade
 );
 
-create table if not exists LIKES
+create table if not exists FILMORATE_LIKE
 (
     FILM_ID INTEGER not null,
     USER_ID INTEGER not null,
-    constraint LIKES_PK
+    constraint FILMORATE_LIKE_PK
         primary key (FILM_ID, USER_ID),
-    constraint LIKES_FK_FILMS
-        foreign key (FILM_ID) references FILMS
+    constraint FILMORATE_LIKE_FK_FILM
+        foreign key (FILM_ID) references FILM
             on delete cascade,
-    constraint LIKES_FK_USERS
-        foreign key (USER_ID) references USERS
+    constraint FILMORATE_LIKE_FK_USER
+        foreign key (USER_ID) references FILMORATE_USER
 );
