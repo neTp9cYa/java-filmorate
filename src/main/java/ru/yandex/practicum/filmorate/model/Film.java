@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Singular;
 import lombok.ToString;
 
 @Data
@@ -18,5 +19,6 @@ public class Film {
     private Mpa mpa;
     private int rate;
     private int likeCount;
+    @Singular
     private Collection<Genre> genres;
 }

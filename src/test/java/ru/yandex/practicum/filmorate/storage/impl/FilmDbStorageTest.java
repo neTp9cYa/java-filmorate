@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,9 +56,7 @@ class FilmDbStorageTest {
             .name("PG")
             .description("детям рекомендуется смотреть фильм с родителями")
             .build());
-        film.setGenres(new ArrayList<>() {{
-            add(Genre.builder().id(3).name("Мультфильм").build());
-        }});
+        film.setGenres(List.of(Genre.builder().id(3).name("Мультфильм").build()));
 
         filmStorage.update(film);
         final Optional<Film> storedFilmOptional = filmStorage.findFilmById(film.getId());
@@ -152,10 +150,8 @@ class FilmDbStorageTest {
                 .name("G")
                 .description("у фильма нет возрастных ограничений")
                 .build())
-            .genres(new ArrayList<Genre>() {{
-                add(Genre.builder().id(1).name("Комедия").build());
-                add(Genre.builder().id(2).name("Драма").build());
-            }});
+            .genre(Genre.builder().id(1).name("Комедия").build())
+            .genre(Genre.builder().id(2).name("Драма").build());
     }
 
     private User.UserBuilder getCorrectUserBuilder() {
