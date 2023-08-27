@@ -34,7 +34,9 @@ public class MpaDbStorage implements MpaStorage {
         final String sql = "select ID, NAME, DESCRIPTION from MPA where ID = ?";
         final SqlRowSet rows = jdbcTemplate.queryForRowSet(sql, id);
 
-        if (!rows.next()) { return Optional.empty(); }
+        if (!rows.next()) {
+            return Optional.empty();
+        }
 
         final Mpa mpa = mapRowToMpa(rows);
         return Optional.of(mpa);

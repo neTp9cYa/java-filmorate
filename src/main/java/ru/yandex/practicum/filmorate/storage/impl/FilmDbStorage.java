@@ -3,9 +3,8 @@ package ru.yandex.practicum.filmorate.storage.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -77,10 +76,10 @@ public class FilmDbStorage implements FilmStorage {
         SimpleJdbcInsert filmGengreInsert = new SimpleJdbcInsert(jdbcTemplate)
             .withTableName("FILM_GENRE");
         for (final Genre genre : genres) {
-            filmGengreInsert.execute(new HashMap<>() {{
-                put("FILM_ID", filmId);
-                put("GENRE_ID", genre.getId());
-            }});
+            final Map<String, Object> cols = new HashMap<>();
+            cols.put("FILM_ID", filmId);
+            cols.put("GENRE_ID", genre.getId());
+            filmGengreInsert.execute(cols);
         }
     }
 
@@ -194,10 +193,11 @@ public class FilmDbStorage implements FilmStorage {
     public void addLike(int filmId, int userId) {
         final SimpleJdbcInsert likeInsert = new SimpleJdbcInsert(jdbcTemplate)
             .withTableName("FILMORATE_LIKE");
-        likeInsert.execute(new HashMap<>() {{
-            put("FILM_ID", filmId);
-            put("USER_ID", userId);
-        }});
+
+        final Map<String, Object> cols = new HashMap<>();
+        cols.put("FILM_ID", filmId);
+        cols.put("USER_ID", userId);
+        likeInsert.execute(cols);
 
         final String filmUpdate = "update FILM set LIKE_COUNT = LIKE_COUNT + 1 where ID = ?";
         jdbcTemplate.update(filmUpdate, filmId);

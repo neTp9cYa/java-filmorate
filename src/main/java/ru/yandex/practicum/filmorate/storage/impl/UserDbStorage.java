@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,7 +11,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -26,12 +26,12 @@ public class UserDbStorage implements UserStorage {
             .withTableName("FILMORATE_USER")
             .usingGeneratedKeyColumns("ID");
 
-        final int userId = userInsert.executeAndReturnKey(new HashMap<>() {{
-            put("EMAIL", user.getEmail());
-            put("LOGIN", user.getLogin());
-            put("BIRTHDAY", user.getBirthday());
-            put("NAME", user.getName());
-        }}).intValue();
+        final Map<String, Object> cols = new HashMap<>();
+        cols.put("EMAIL", user.getEmail());
+        cols.put("LOGIN", user.getLogin());
+        cols.put("BIRTHDAY", user.getBirthday());
+        cols.put("NAME", user.getName());
+        final int userId = userInsert.executeAndReturnKey(cols).intValue();
 
         user.setId(userId);
 
@@ -54,7 +54,9 @@ public class UserDbStorage implements UserStorage {
         final String sql = "select ID, EMAIL, LOGIN, BIRTHDAY, NAME from FILMORATE_USER where ID = ?";
         final SqlRowSet rows = jdbcTemplate.queryForRowSet(sql, id);
 
-        if (!rows.next()) { return Optional.empty(); }
+        if (!rows.next()) {
+            return Optional.empty();
+        }
 
         final User user = mapRowToUser(rows);
 
@@ -88,10 +90,11 @@ public class UserDbStorage implements UserStorage {
     public void addFriend(int userId, int friendId) {
         final SimpleJdbcInsert friendInsert = new SimpleJdbcInsert(jdbcTemplate)
             .withTableName("FRIEND");
-        friendInsert.execute(new HashMap<>() {{
-            put("USER_ID", userId);
-            put("FRIEND_ID", friendId);
-        }});
+
+        final Map<String, Object> cols = new HashMap<>();
+        cols.put("USER_ID", userId);
+        cols.put("FRIEND_ID", friendId);
+        friendInsert.execute(cols);
     }
 
     @Override

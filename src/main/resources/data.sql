@@ -14,7 +14,8 @@ merge into MPA
     when not matched then INSERT (NAME, DESCRIPTION) values (TMP.NAME, TMP.DESCRIPTION);
 
 merge into MPA
-    using (values ('R', 'лицам до 17 лет просматривать фильм можно только в присутствии взрослого')) TMP (NAME, DESCRIPTION)
+    using (values ('R',
+                   'лицам до 17 лет просматривать фильм можно только в присутствии взрослого')) TMP (NAME, DESCRIPTION)
     on MPA.NAME = TMP.NAME
     when not matched then INSERT (NAME, DESCRIPTION) values (TMP.NAME, TMP.DESCRIPTION);
 

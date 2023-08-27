@@ -6,5 +6,6 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 
 public interface MpaStorage {
     Collection<Mpa> findAll();
+
     Optional<Mpa> findById(final int id);
 }

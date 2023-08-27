@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import java.util.Collection;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -16,6 +15,7 @@ public class MpaService {
     public Collection<Mpa> findAll() {
         return mpaStorage.findAll();
     }
+
     public Mpa findById(final int id) {
         return mpaStorage.findById(id)
             .orElseThrow(() -> new NotFoundException(String.format("Mpa does not exists, id = %d", id)));

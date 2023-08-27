@@ -8,9 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
 @Component
 @RequiredArgsConstructor
@@ -35,7 +33,9 @@ public class GenreDbStorage implements GenreStorage {
         final String sql = "select ID, NAME from GENRE where ID = ?";
         final SqlRowSet rows = jdbcTemplate.queryForRowSet(sql, id);
 
-        if (!rows.next()) { return Optional.empty(); }
+        if (!rows.next()) {
+            return Optional.empty();
+        }
 
         final Genre genre = mapRowToGenre(rows);
         return Optional.of(genre);
