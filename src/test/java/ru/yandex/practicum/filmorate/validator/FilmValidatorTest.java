@@ -21,13 +21,26 @@ class FilmValidatorTest {
 
     @ParameterizedTest
     @NullSource
+    @ValueSource(ints = {-1, 0})
+    @DisplayName("Невалидный id приводит к исключению")
+    void whenIdIsNotValidThenValidateUpdateShouldThrow(final Integer id) {
+        final Film film = correctFilm().id(id).build();
+        final ValidationException exception =
+            assertThrows(ValidationException.class, () -> filmValidator.validateUpdate(film),
+                "Exception is not thrown");
+        assertEquals("Id is not valid", exception.getMessage(), "Execption message is not valid");
+    }
+
+    @ParameterizedTest
+    @NullSource
     @ValueSource(strings = {"", " ",})
     @DisplayName("Невалидный name приводит к исключению")
     void validateInvalidNameShouldThrow(final String name) {
         final Film film = correctFilm().name(name).build();
         final ValidationException exception =
-            assertThrows(ValidationException.class, () -> filmValidator.validate(film));
-        assertEquals("Name is not valid", exception.getMessage());
+            assertThrows(ValidationException.class, () -> filmValidator.validateCreate(film),
+                "Exception is not thrown");
+        assertEquals("Name is not valid", exception.getMessage(), "Execption message is not valid");
     }
 
     @ParameterizedTest
@@ -36,14 +49,14 @@ class FilmValidatorTest {
     @DisplayName("Отсутсвие или пустое description допусимо")
     void validateNullEmptyDescriptionShouldNotThrow(final String description) {
         final Film film = correctFilm().description(description).build();
-        assertDoesNotThrow(() -> filmValidator.validate(film));
+        assertDoesNotThrow(() -> filmValidator.validateCreate(film), "Exception is thrown");
     }
 
     @Test
     @DisplayName("Длинное description допусимо")
     void validateLongDescriptionShouldNotThrow() {
         final Film film = correctFilm().description("*".repeat(MAX_DESCRIPTION_LENGTH)).build();
-        assertDoesNotThrow(() -> filmValidator.validate(film));
+        assertDoesNotThrow(() -> filmValidator.validateCreate(film), "Exception is thrown");
     }
 
     @Test
@@ -51,28 +64,28 @@ class FilmValidatorTest {
     void validateTooLongDescriptionShouldThrow() {
         final Film film = correctFilm().description("*".repeat(201)).build();
         final ValidationException exception =
-            assertThrows(ValidationException.class, () -> filmValidator.validate(film));
-        assertEquals("Description is not valid", exception.getMessage());
+            assertThrows(ValidationException.class, () -> filmValidator.validateCreate(film),
+                "Exception is not thrown");
+        assertEquals("Description is not valid", exception.getMessage(),
+            "Execption message is not valid");
     }
 
     @Test
     @DisplayName("Старое releaseDate допусимо")
     void validateOldReleaseDateShouldNotThrow() {
-        final Film film = correctFilm()
-            .releaseDate(MIN_RELEASE_DATE)
-            .build();
-        assertDoesNotThrow(() -> filmValidator.validate(film));
+        final Film film = correctFilm().releaseDate(MIN_RELEASE_DATE).build();
+        assertDoesNotThrow(() -> filmValidator.validateCreate(film), "Exception is thrown");
     }
 
     @Test
     @DisplayName("Очень старое releaseDate приводит к исключению")
     void validateTooOldReleaseDateShouldThrow() {
-        final Film film = correctFilm()
-            .releaseDate(MIN_RELEASE_DATE.minusDays(1))
-            .build();
+        final Film film = correctFilm().releaseDate(MIN_RELEASE_DATE.minusDays(1)).build();
         final ValidationException exception =
-            assertThrows(ValidationException.class, () -> filmValidator.validate(film));
-        assertEquals("Release date is not valid", exception.getMessage());
+            assertThrows(ValidationException.class, () -> filmValidator.validateCreate(film),
+                "Exception is not thrown");
+        assertEquals("Release date is not valid", exception.getMessage(),
+            "Execption message is not valid");
     }
 
     @ParameterizedTest
@@ -81,23 +94,21 @@ class FilmValidatorTest {
     void validateNotPositiveDurationShouldThrow(final int duration) {
         final Film user = correctFilm().duration(duration).build();
         final ValidationException exception =
-            assertThrows(ValidationException.class, () -> filmValidator.validate(user));
-        assertEquals("Duration is not valid", exception.getMessage());
+            assertThrows(ValidationException.class, () -> filmValidator.validateCreate(user),
+                "Exception is not thrown");
+        assertEquals("Duration is not valid", exception.getMessage(),
+            "Execption message is not valid");
     }
 
     @Test
     @DisplayName("Корректные данные проходят валидацию")
     void validateValidUserShouldNotThrow() {
         final Film film = correctFilm().build();
-        assertDoesNotThrow(() -> filmValidator.validate(film));
+        assertDoesNotThrow(() -> filmValidator.validateCreate(film), "Exception is thrown");
     }
 
     private Film.FilmBuilder correctFilm() {
-        return Film.builder()
-            .id(1)
-            .name("test")
-            .description("test")
-            .releaseDate(MIN_RELEASE_DATE.plusDays(1))
+        return Film.builder().id(1).name("test").description("test").releaseDate(MIN_RELEASE_DATE.plusDays(1))
             .duration(1);
     }
 

@@ -13,7 +13,14 @@ public class FilmValidator {
     private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private static final int MAX_DESCRIPTION_LENGTH = 200;
 
-    public void validate(final Film film) {
+    public void validateUpdate(final Film film) {
+        if (film.getId() == null || film.getId() <= 0) {
+            throw new ValidationException("Id is not valid");
+        }
+        validateCreate(film);
+    }
+
+    public void validateCreate(final Film film) {
 
         // название не может быть пустым
         if (film.getName() == null || film.getName().isBlank()) {

@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
-import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,70 +15,70 @@ import ru.yandex.practicum.filmorate.validator.UserValidator;
 public class UserService {
 
     private final UserValidator userValidator;
+
     private final UserStorage userStorage;
 
     public User create(final User user) {
-        userValidator.validate(user);
+        userValidator.validateCreate(user);
         transform(user);
         return userStorage.create(user);
     }
 
     public User update(final User user) {
-        userStorage.findOne(user.getId())
+        userValidator.validateUpdate(user);
+
+        userStorage.findUserById(user.getId())
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", user.getId())));
 
-        userValidator.validate(user);
         transform(user);
         userStorage.update(user);
         return user;
     }
 
     public User findOne(final int id) {
-        return userStorage.findOne(id)
+        return userStorage.findUserById(id)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", id)));
     }
 
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         return userStorage.findAll();
     }
 
-    public Collection<User> findFriends(final int id) {
-        final User user = userStorage.findOne(id)
+    public List<User> findFriends(final int id) {
+        final User user = userStorage.findUserById(id)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", id)));
 
         return userStorage.findFriends(user.getId());
     }
 
-    public Collection<User> findCommonFriends(final int id, final int otherId) {
-        final User user = userStorage.findOne(id)
+    public List<User> findCommonFriends(final int id, final int otherId) {
+        final User user = userStorage.findUserById(id)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", id)));
 
-        final User otherUser = userStorage.findOne(otherId)
+        final User otherUser = userStorage.findUserById(otherId)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", otherId)));
 
         return userStorage.findCommonFriends(user.getId(), otherUser.getId());
     }
 
     public void addFriend(final int userId, final int friendId) {
-        final User user = userStorage.findOne(userId)
+        final User user = userStorage.findUserById(userId)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
 
-        final User friend = userStorage.findOne(friendId)
+        final User friend = userStorage.findUserById(friendId)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", friendId)));
 
         userStorage.addFriend(user.getId(), friend.getId());
-        userStorage.addFriend(friend.getId(), user.getId());
     }
 
     public void removeFriend(final int userId, final int friendId) {
-        final User user = userStorage.findOne(userId)
+        final User user = userStorage.findUserById(userId)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", userId)));
 
-        final User friend = userStorage.findOne(friendId)
+        final User friend = userStorage.findUserById(friendId)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", friendId)));
 
         userStorage.removeFriend(user.getId(), friend.getId());
-        userStorage.removeFriend(friend.getId(), user.getId());
     }
 
     private void transform(final User user) {
