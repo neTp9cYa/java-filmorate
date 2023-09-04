@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
@@ -27,7 +28,7 @@ public class MpaDbStorage implements MpaStorage {
     @Override
     public Optional<Mpa> findById(final int id) {
         final String sql = "select MPA_ID, NAME, DESCRIPTION from MPAS where MPA_ID = :MPA_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource().addValue("MPA_ID", id);
+        final SqlParameterSource parameters = new MapSqlParameterSource().addValue("MPA_ID", id);
         try {
             final Mpa mpa = namedParameterJdbcOperations.queryForObject(sql, parameters, this::mapRowToMpa);
             return Optional.of(mpa);

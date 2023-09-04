@@ -47,6 +47,7 @@ class GenreDbStorageTest {
     @DisplayName("Find genre by incorrect id should return null")
     void findGenreByIncorrectIdShoudReturnNull() {
         final Optional<Genre> genreOptional = genreStorage.findById(-1);
+
         assertThat(genreOptional).isNotPresent();
     }
 }

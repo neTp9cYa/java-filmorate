@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class UserDbStorage implements UserStorage {
     public User create(User user) {
         final String sql = "insert into USERS (EMAIL, LOGIN, BIRTHDAY, NAME) "
             + "values (:EMAIL, :LOGIN, :BIRTHDAY, :NAME)";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("EMAIL", user.getEmail())
             .addValue("LOGIN", user.getLogin())
             .addValue("BIRTHDAY", user.getBirthday())
@@ -43,7 +44,7 @@ public class UserDbStorage implements UserStorage {
         final String sql = "update USERS set " +
             "EMAIL = :EMAIL, LOGIN = :LOGIN, BIRTHDAY = :BIRTHDAY, NAME = :NAME " +
             "where USER_ID = :USER_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("EMAIL", user.getEmail())
             .addValue("LOGIN", user.getLogin())
             .addValue("BIRTHDAY", user.getBirthday())
@@ -56,7 +57,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Optional<User> findUserById(int id) {
         final String sql = "select USER_ID, EMAIL, LOGIN, BIRTHDAY, NAME from USERS where USER_ID = :USER_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("USER_ID", id);
 
         try {
@@ -87,7 +88,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void addFriend(int userId, int friendId) {
         final String sql = "insert into FRIENDS (USER_ID, FRIEND_ID) values (:USER_ID, :FRIEND_ID)";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("USER_ID", userId)
             .addValue("FRIEND_ID", friendId);
 
@@ -97,7 +98,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void removeFriend(int userId, int friendId) {
         final String sql = "delete from FRIENDS where USER_ID = :USER_ID and FRIEND_ID = :FRIEND_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("USER_ID", userId)
             .addValue("FRIEND_ID", friendId);
 
@@ -111,7 +112,7 @@ public class UserDbStorage implements UserStorage {
             "inner join USERS u on f.FRIEND_ID = u.USER_ID " +
             "where f.USER_ID = :USER_ID " +
             "order by u.USER_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("USER_ID", id);
         final List<User> users = namedParameterJdbcOperations.query(sql, parameters, this::mapRowToUser);
         return users;
@@ -125,7 +126,7 @@ public class UserDbStorage implements UserStorage {
             "inner join USERS u on f1.FRIEND_ID = u.USER_ID " +
             "where f1.USER_ID = :USER_ID and f2.USER_ID = :OTHER_USER_ID " +
             "order by u.USER_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("USER_ID", id)
             .addValue("OTHER_USER_ID", otherId);
         final List<User> users = namedParameterJdbcOperations.query(sql, parameters, this::mapRowToUser);

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
@@ -27,7 +28,7 @@ public class GenreDbStorage implements GenreStorage {
     @Override
     public Optional<Genre> findById(final int id) {
         final String sql = "select GENRE_ID, NAME from GENRES where GENRE_ID = :GENRE_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource().addValue("GENRE_ID", id);
+        final SqlParameterSource parameters = new MapSqlParameterSource().addValue("GENRE_ID", id);
         try {
             final Genre genre = namedParameterJdbcOperations.queryForObject(sql, parameters, this::mapRowToGenre);
             return Optional.of(genre);
@@ -39,7 +40,7 @@ public class GenreDbStorage implements GenreStorage {
     @Override
     public List<Genre> findByIds(final int[] ids) {
         final String sql = "select ID, NAME from GENRES where GENRE_ID IN (:GENRE_IDS)";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource().addValue("GENRE_IDS", ids);
+        final SqlParameterSource parameters = new MapSqlParameterSource().addValue("GENRE_IDS", ids);
         final List<Genre> genres = namedParameterJdbcOperations.getJdbcOperations().query(sql, this::mapRowToGenre);
         return genres;
     }

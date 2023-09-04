@@ -47,6 +47,7 @@ class MpaDbStorageTest {
     @DisplayName("Find mpa by incorrect id should return null")
     void findFilmByIncorrectIdShoudReturnNull() {
         final Optional<Mpa> mpaOptional = mpaStorage.findById(-1);
+
         assertThat(mpaOptional).isNotPresent();
     }
 }

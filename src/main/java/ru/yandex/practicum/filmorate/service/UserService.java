@@ -19,13 +19,13 @@ public class UserService {
     private final UserStorage userStorage;
 
     public User create(final User user) {
-        userValidator.validate(user);
+        userValidator.validateCreate(user);
         transform(user);
         return userStorage.create(user);
     }
 
     public User update(final User user) {
-        userValidator.validate(user);
+        userValidator.validateUpdate(user);
 
         userStorage.findUserById(user.getId())
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", user.getId())));

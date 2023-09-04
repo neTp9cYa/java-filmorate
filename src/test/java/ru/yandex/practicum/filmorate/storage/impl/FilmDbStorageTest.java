@@ -31,12 +31,16 @@ class FilmDbStorageTest {
     @Test
     @DisplayName("Create film and then get by id should success")
     void createAndFindById() {
+        // create
         Film film = getCorrectFilmBuilder().build();
+
         film = filmStorage.create(film);
 
         assertNotNull(film, "Created film is null");
         assertNotNull(film.getId(), "Film id is not generated");
 
+
+        // find by id
         final Optional<Film> storedFilmOptional = filmStorage.findFilmById(film.getId());
 
         assertThat(storedFilmOptional).isPresent();
@@ -47,6 +51,7 @@ class FilmDbStorageTest {
     @DisplayName("Find film by incorrect id should return null")
     void findFilmByIncorrectIdShoudReturnNull() {
         final Optional<Film> storedFilmOptional = filmStorage.findFilmById(-1);
+
         assertThat(storedFilmOptional).isNotPresent();
     }
 
@@ -55,7 +60,6 @@ class FilmDbStorageTest {
     void update() {
         Film film = getCorrectFilmBuilder().build();
         film = filmStorage.create(film);
-
         film.setName("new name");
         film.setDuration(100);
         film.setDescription("new description");
@@ -70,8 +74,8 @@ class FilmDbStorageTest {
         film.setGenres(genres);
 
         filmStorage.update(film);
-        final Optional<Film> storedFilmOptional = filmStorage.findFilmById(film.getId());
 
+        final Optional<Film> storedFilmOptional = filmStorage.findFilmById(film.getId());
         assertThat(storedFilmOptional).isPresent();
         assertEquals(film, storedFilmOptional.get(), "Film properties updated incorrectly");
     }
@@ -81,7 +85,6 @@ class FilmDbStorageTest {
     void findAll() {
         Film film1 = getCorrectFilmBuilder().name("name1").build();
         Film film2 = getCorrectFilmBuilder().name("name2").build();
-
         film1 = filmStorage.create(film1);
         film2 = filmStorage.create(film2);
 
@@ -95,56 +98,37 @@ class FilmDbStorageTest {
     @Test
     @DisplayName("Find popular films should success")
     void findPopular() {
-        User user1 = getCorrectUserBuilder().name("name1").build();
-        User user2 = getCorrectUserBuilder().name("name2").build();
-        User user3 = getCorrectUserBuilder().name("name3").build();
+        List<Film> films = filmStorage.findPopular(2);
 
-        user1 = userStorage.create(user1);
-        user2 = userStorage.create(user2);
-        user3 = userStorage.create(user3);
-
-        Film film1 = getCorrectFilmBuilder().name("name1").build();
-        Film film2 = getCorrectFilmBuilder().name("name2").build();
-
-        film1 = filmStorage.create(film1);
-        film2 = filmStorage.create(film2);
-
-        filmStorage.addLike(film1.getId(), user1.getId());
-        filmStorage.addLike(film1.getId(), user2.getId());
-        film1 = filmStorage.findFilmById(film1.getId()).get();
-
-        List<Film> films = filmStorage.findPopular(1);
         assertThat(films)
             .isNotNull()
-            .hasSize(1)
-            .contains(film1);
-
-        filmStorage.addLike(film2.getId(), user1.getId());
-        filmStorage.addLike(film2.getId(), user2.getId());
-        filmStorage.addLike(film2.getId(), user3.getId());
-        film2 = filmStorage.findFilmById(film2.getId()).get();
-
-        films = filmStorage.findPopular(1);
-        assertThat(films)
+            .hasSize(2);
+        assertThat(films.get(0))
             .isNotNull()
-            .hasSize(1)
-            .contains(film2);
+            .hasFieldOrPropertyWithValue("id", 2);
+        assertThat(films.get(1))
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", 3);
     }
 
     @Test
     @DisplayName("Add and remove like should success")
     void addAndRemoveLike() {
+        // add like
         User user = getCorrectUserBuilder().build();
         user = userStorage.create(user);
-
         Film film = getCorrectFilmBuilder().build();
         film = filmStorage.create(film);
 
         filmStorage.addLike(film.getId(), user.getId());
+
         Film storedFilm = filmStorage.findFilmById(film.getId()).get();
         assertEquals(1, storedFilm.getLikeCount(), "Like has not added");
 
+
+        // remove like
         filmStorage.removeLike(film.getId(), user.getId());
+
         storedFilm = filmStorage.findFilmById(film.getId()).get();
         assertEquals(0, storedFilm.getLikeCount(), "Like has not removed");
     }

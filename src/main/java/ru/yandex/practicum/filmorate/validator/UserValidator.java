@@ -9,7 +9,14 @@ import ru.yandex.practicum.filmorate.model.User;
 @Service
 @Slf4j
 public class UserValidator {
-    public void validate(final User user) {
+    public void validateUpdate(final User user) {
+        if (user.getId() == null || user.getId() <= 0) {
+            throw new ValidationException("Id is not valid");
+        }
+        validateCreate(user);
+    }
+
+    public void validateCreate(final User user) {
 
         // электронная почта не может быть пустой и должна содержать символ @;
         if (user.getEmail() == null || !user.getEmail().contains("@")) {

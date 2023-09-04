@@ -21,12 +21,12 @@ public class FilmService {
     private final UserStorage userStorage;
 
     public Film create(final Film film) {
-        filmValidator.validate(film);
+        filmValidator.validateCreate(film);
         return filmStorage.create(film);
     }
 
     public Film update(final Film film) {
-        filmValidator.validate(film);
+        filmValidator.validateUpdate(film);
 
         // check if film exists
         filmStorage.findFilmById(film.getId())

@@ -2,9 +2,8 @@ package ru.yandex.practicum.filmorate.storage.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.sql.Types;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,9 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -34,7 +33,7 @@ public class FilmDbStorage implements FilmStorage {
     public Film create(final Film film) {
         final String sql = "insert into FILMS (NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_ID, RATE, LIKE_COUNT) " +
             "values(:NAME, :DESCRIPTION, :RELEASE_DATE, :DURATION, :MPA_ID, :RATE, :LIKE_COUNT)";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("NAME", film.getName())
             .addValue("DESCRIPTION", film.getDescription())
             .addValue("RELEASE_DATE", film.getReleaseDate())
@@ -60,7 +59,7 @@ public class FilmDbStorage implements FilmStorage {
             "NAME = :NAME, DESCRIPTION = :DESCRIPTION, RELEASE_DATE = :RELEASE_DATE, " +
             "DURATION = :DURATION, MPA_ID = :MPA_ID, RATE = :RATE " +
             "where FILM_ID = :FILM_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("NAME", film.getName())
             .addValue("DESCRIPTION", film.getDescription())
             .addValue("RELEASE_DATE", film.getReleaseDate())
@@ -77,7 +76,7 @@ public class FilmDbStorage implements FilmStorage {
 
     private void deleteFilmGenres(final int filmId) {
         final String sql = "delete from FILM_GENRES where FILM_ID = :FILM_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("FILM_ID", filmId);
 
         namedParameterJdbcOperations.update(sql, parameters);
@@ -89,12 +88,12 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         final String sql = "insert into FILM_GENRES (FILM_ID, GENRE_ID) values(:FILM_ID, :GENRE_ID)";
-        for (final Genre genre : genres) {
-            final MapSqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("FILM_ID", filmId)
-                .addValue("GENRE_ID", genre.getId());
-            namedParameterJdbcOperations.update(sql, parameters);
-        }
+        final SqlParameterSource[] paremeters = genres.stream()
+            .map(genre -> new MapSqlParameterSource()
+                .addValue("FILM_ID", filmId, Types.INTEGER)
+                .addValue("GENRE_ID", genre.getId(), Types.INTEGER))
+            .toArray(SqlParameterSource[]::new);
+        namedParameterJdbcOperations.batchUpdate(sql, paremeters);
     }
 
     @Override
@@ -105,7 +104,7 @@ public class FilmDbStorage implements FilmStorage {
                 "from FILMS f " +
                 "left join MPAS m on f.MPA_ID = m.MPA_ID " +
                 "where f.FILM_ID = :FILM_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("FILM_ID", id);
 
         try {
@@ -123,7 +122,7 @@ public class FilmDbStorage implements FilmStorage {
             "left join GENRES g on fg.GENRE_ID = g.GENRE_ID " +
             "where fg.FILM_ID = :FILM_ID " +
             "order by g.GENRE_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("FILM_ID", filmId);
         final List<Genre> genres = namedParameterJdbcOperations.query(sql, parameters, this::mapRowToGenre);
         return genres;
@@ -172,40 +171,44 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private Map<Integer, SortedSet<Genre>> findGenresByFilmIds(final List<Integer> ids) {
-        final String sql = "select FILM_ID, GENRE_ID from FILM_GENRES where FILM_ID IN (:FILM_IDS)";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource().addValue("FILM_IDS", ids);
-        final SqlRowSet rows = namedParameterJdbcOperations.queryForRowSet(sql, parameters);
+        final String sql = "select fg.FILM_ID, g.GENRE_ID, g.NAME as GENRE_NAME " +
+            "from FILM_GENRES fg " +
+            "inner join GENRES g on fg.GENRE_ID = g.GENRE_ID " +
+            "where fg.FILM_ID IN (:FILM_IDS)";
+        final SqlParameterSource parameters = new MapSqlParameterSource().addValue("FILM_IDS", ids);
+        return namedParameterJdbcOperations.query(sql, parameters, resultSet -> {
+            final Map<Integer, SortedSet<Genre>> filmsToGenres = new HashMap<>();
+            final Map<Integer, Genre> genres = new HashMap<>();
 
-        Map<Integer, List<Integer>> filmsToGenreIds = new HashMap<>();
-        Set<Integer> genreIds = new HashSet<>();
-        while (rows.next()) {
-            final int filmId = rows.getInt("FILM_ID");
-            final int genreId = rows.getInt("GENRE_ID");
-            List<Integer> filmToGenreIds = filmsToGenreIds.get(filmId);
-            if (filmToGenreIds == null) {
-                filmToGenreIds = new ArrayList<>();
-                filmsToGenreIds.put(filmId, filmToGenreIds);
+            while (resultSet.next()) {
+                final int filmId = resultSet.getInt("FILM_ID");
+                final int genreId = resultSet.getInt("GENRE_ID");
+
+                Genre genre = genres.get(genreId);
+                if (genre == null) {
+                    genre = Genre.builder()
+                        .id(genreId)
+                        .name(resultSet.getString("GENRE_NAME"))
+                        .build();
+                    genres.put(genreId, genre);
+                }
+
+                SortedSet<Genre> filmToGenres = filmsToGenres.get(filmId);
+                if (filmToGenres == null) {
+                    filmToGenres = new TreeSet<>();
+                    filmsToGenres.put(filmId, filmToGenres);
+                }
+
+                filmToGenres.add(genre);
             }
-            filmToGenreIds.add(genreId);
-            genreIds.add(genreId);
-        }
 
-        final Map<Integer, Genre> genres = findGengresByIds(genreIds);
-        final Map<Integer, SortedSet<Genre>> filmsToGenres = new HashMap<>();
-        for (final Integer filmId : filmsToGenreIds.keySet()) {
-            final List<Integer> filmGenreIds = filmsToGenreIds.get(filmId);
-            filmsToGenres.put(filmId,
-                filmGenreIds.stream().map(genreId -> genres.get(genreId))
-                    .collect(Collectors.toCollection(TreeSet::new)));
-
-        }
-
-        return filmsToGenres;
+            return filmsToGenres;
+        });
     }
 
     private Map<Integer, Genre> findGengresByIds(final Set<Integer> ids) {
         final String sql = "select GENRE_ID, NAME from GENRES where GENRE_ID IN (:GENRE_IDS)";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource().addValue("GENRE_IDS", ids);
+        final SqlParameterSource parameters = new MapSqlParameterSource().addValue("GENRE_IDS", ids);
         final List<Genre> genres = namedParameterJdbcOperations.query(sql, parameters, this::mapRowToGenre);
         return genres.stream().collect(Collectors.toMap(g -> g.getId(), g -> g));
     }
@@ -218,7 +221,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findPopular(int count) {
+    public List<Film> findPopular(final int count) {
         final String sql =
             "select f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_ID, f.RATE, f.LIKE_COUNT, " +
                 "m.NAME as MPA_NAME, m.DESCRIPTION as MPA_DESCRIPTION " +
@@ -226,7 +229,7 @@ public class FilmDbStorage implements FilmStorage {
                 "left join MPAS m on f.MPA_ID = m.MPA_ID " +
                 "order by f.LIKE_COUNT desc, f.FILM_ID " +
                 "limit :count";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("count", count);
         final List<Film> films = namedParameterJdbcOperations.query(sql, parameters, this::mapRowToFilm);
 
@@ -241,32 +244,40 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public void addLike(int filmId, int userId) {
-        final String sql = "INSERT INTO LIKES (FILM_ID, USER_ID) values (:FILM_ID, :USER_ID)";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+    public void addLike(final int filmId, final int userId) {
+        final String sql = "merge into LIKES l " +
+            "using (values (:FILM_ID, :USER_ID)) tmp (FILM_ID, USER_ID) " +
+            "on l.FILM_ID = tmp.FILM_ID and l.USER_ID = tmp.USER_ID " +
+            "when not matched then INSERT (FILM_ID, USER_ID) values (tmp.FILM_ID, tmp.USER_ID)";
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("FILM_ID", filmId)
             .addValue("USER_ID", userId);
-        namedParameterJdbcOperations.update(sql, parameters);
+        final int insertRowCount = namedParameterJdbcOperations.update(sql, parameters);
 
-        final String filmSql = "update FILMS set LIKE_COUNT = LIKE_COUNT + 1 where FILM_ID = :FILM_ID";
-        final MapSqlParameterSource filmParameters = new MapSqlParameterSource()
-            .addValue("FILM_ID", filmId);
-        namedParameterJdbcOperations.update(filmSql, filmParameters);
+        if (insertRowCount == 1) {
+            updateLikeCount(filmId);
+        }
     }
 
     @Override
-    public void removeLike(int filmId, int userId) {
+    public void removeLike(final int filmId, final int userId) {
         final String sql = "delete from LIKES where FILM_ID = :FILM_ID and USER_ID = :USER_ID";
-        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+        final SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("FILM_ID", filmId)
             .addValue("USER_ID", userId);
         final int deletedRowCount = namedParameterJdbcOperations.update(sql, parameters);
 
         if (deletedRowCount == 1) {
-            final String filmSql = "update FILMS set LIKE_COUNT = LIKE_COUNT - 1 where FILM_ID = :FILM_ID";
-            final MapSqlParameterSource filmParameters = new MapSqlParameterSource()
-                .addValue("FILM_ID", filmId);
-            namedParameterJdbcOperations.update(filmSql, filmParameters);
+            updateLikeCount(filmId);
         }
+    }
+
+    private void updateLikeCount(final int filmId) {
+        final String filmSql = "update FILMS " +
+            "set LIKE_COUNT = (select count(USER_ID) from LIKES where FILM_ID = :FILM_ID) " +
+            "where FILM_ID = :FILM_ID";
+        final SqlParameterSource filmParameters = new MapSqlParameterSource()
+            .addValue("FILM_ID", filmId);
+        namedParameterJdbcOperations.update(filmSql, filmParameters);
     }
 }
