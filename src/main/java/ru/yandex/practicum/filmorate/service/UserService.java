@@ -1,9 +1,8 @@
 package ru.yandex.practicum.filmorate.service;
 
-import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -17,7 +16,6 @@ public class UserService {
 
     private final UserValidator userValidator;
 
-    @Qualifier("userDbStorage")
     private final UserStorage userStorage;
 
     public User create(final User user) {
@@ -27,10 +25,11 @@ public class UserService {
     }
 
     public User update(final User user) {
+        userValidator.validate(user);
+
         userStorage.findUserById(user.getId())
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", user.getId())));
 
-        userValidator.validate(user);
         transform(user);
         userStorage.update(user);
         return user;
@@ -41,18 +40,18 @@ public class UserService {
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", id)));
     }
 
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         return userStorage.findAll();
     }
 
-    public Collection<User> findFriends(final int id) {
+    public List<User> findFriends(final int id) {
         final User user = userStorage.findUserById(id)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", id)));
 
         return userStorage.findFriends(user.getId());
     }
 
-    public Collection<User> findCommonFriends(final int id, final int otherId) {
+    public List<User> findCommonFriends(final int id, final int otherId) {
         final User user = userStorage.findUserById(id)
             .orElseThrow(() -> new NotFoundException(String.format("User does not exists, id = %d", id)));
 

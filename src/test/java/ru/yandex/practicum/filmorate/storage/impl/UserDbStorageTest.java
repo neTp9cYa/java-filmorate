@@ -2,27 +2,25 @@ package ru.yandex.practicum.filmorate.storage.impl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.model.User;
 
-@SpringBootTest
-@AutoConfigureTestDatabase
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
-@DisplayName("Store genre in database")
+@JdbcTest
+@Import(UserDbStorage.class)
+@DisplayName("Store user in database")
 class UserDbStorageTest {
-    private final UserDbStorage userStorage;
+
+    @Autowired
+    private UserDbStorage userStorage;
 
     @Test
     @DisplayName("Create user and then get by id should success")
@@ -30,12 +28,20 @@ class UserDbStorageTest {
         User user = getCorrectUserBuilder().build();
         user = userStorage.create(user);
 
-        assertTrue(user.getId() > 0);
+        assertNotNull(user, "Created user is null");
+        assertNotNull(user.getId(), "User id is not generated");
 
         final Optional<User> storedUserOptional = userStorage.findUserById(user.getId());
 
         assertThat(storedUserOptional).isPresent();
-        assertEquals(user, storedUserOptional.get());
+        assertEquals(user, storedUserOptional.get(), "Сreated user contains invalid data");
+    }
+
+    @Test
+    @DisplayName("Find user by incorrect id should return null")
+    void findFilmByIncorrectIdShoudReturnNull() {
+        final Optional<User> userOptional = userStorage.findUserById(-1);
+        assertThat(userOptional).isNotPresent();
     }
 
     @Test
@@ -54,7 +60,7 @@ class UserDbStorageTest {
         final Optional<User> storedUserOptional = userStorage.findUserById(user.getId());
 
         assertThat(storedUserOptional).isPresent();
-        assertEquals(user, storedUserOptional.get());
+        assertEquals(user, storedUserOptional.get(), "User properties updated incorrectly");
 
     }
 
@@ -67,7 +73,7 @@ class UserDbStorageTest {
         user1 = userStorage.create(user1);
         user2 = userStorage.create(user2);
 
-        final Collection<User> users = userStorage.findAll();
+        final List<User> users = userStorage.findAll();
 
         assertThat(users)
             .isNotNull()
@@ -85,13 +91,13 @@ class UserDbStorageTest {
 
         userStorage.addFriend(user1.getId(), user2.getId());
 
-        Collection<User> user1Friends = userStorage.findFriends(user1.getId());
+        List<User> user1Friends = userStorage.findFriends(user1.getId());
 
         assertNotNull(user1Friends);
         assertEquals(1, user1Friends.size());
         assertEquals(user2, user1Friends.stream().findFirst().get());
 
-        Collection<User> user2Friends = userStorage.findFriends(user2.getId());
+        List<User> user2Friends = userStorage.findFriends(user2.getId());
         assertNotNull(user2Friends);
         assertEquals(0, user2Friends.size());
     }
@@ -109,14 +115,14 @@ class UserDbStorageTest {
         userStorage.addFriend(user2.getId(), user1.getId());
         userStorage.removeFriend(user2.getId(), user1.getId());
 
-        Collection<User> user1Friends = userStorage.findFriends(user1.getId());
+        List<User> user1Friends = userStorage.findFriends(user1.getId());
 
         assertNotNull(user1Friends);
         assertEquals(1, user1Friends.size());
         assertEquals(user2, user1Friends.stream().findFirst().get());
 
 
-        Collection<User> user2Friends = userStorage.findFriends(user2.getId());
+        List<User> user2Friends = userStorage.findFriends(user2.getId());
         assertNotNull(user2Friends);
         assertEquals(0, user2Friends.size());
     }
@@ -135,7 +141,7 @@ class UserDbStorageTest {
         userStorage.addFriend(user1.getId(), user2.getId());
         userStorage.addFriend(user1.getId(), user3.getId());
 
-        Collection<User> friends = userStorage.findFriends(user1.getId());
+        List<User> friends = userStorage.findFriends(user1.getId());
 
         assertNotNull(friends);
         assertEquals(2, friends.size());
@@ -159,7 +165,7 @@ class UserDbStorageTest {
         userStorage.addFriend(user1.getId(), user3.getId());
         userStorage.addFriend(user2.getId(), user3.getId());
 
-        Collection<User> friends = userStorage.findCommonFriends(user1.getId(), user2.getId());
+        List<User> friends = userStorage.findCommonFriends(user1.getId(), user2.getId());
 
         assertNotNull(friends);
         assertThat(friends)

@@ -1,33 +1,32 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
-@SpringBootTest
-@AutoConfigureTestDatabase
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@JdbcTest
+@Import(MpaDbStorage.class)
 @DisplayName("Store genre in database")
 class MpaDbStorageTest {
 
-    private final MpaDbStorage mpaStorage;
+    @Autowired
+    private MpaDbStorage mpaStorage;
 
     @Test
     @DisplayName("Get all mpa should success")
     void findAll() {
-        Collection<Mpa> mpas = mpaStorage.findAll();
+        List<Mpa> mpas = mpaStorage.findAll();
 
         assertNotNull(mpas);
-        assertEquals(5, mpas.size());
+        assertEquals(5, mpas.size(), "Mpa count incorrect");
     }
 
     @Test
@@ -38,10 +37,18 @@ class MpaDbStorageTest {
         assertThat(mpaOptional)
             .isPresent()
             .hasValueSatisfying(mpa -> {
-                    assertEquals(1, mpa.getId());
-                    assertEquals("G", mpa.getName());
-                    assertEquals("у фильма нет возрастных ограничений", mpa.getDescription());
+                    assertEquals(1, mpa.getId(), "Id of retrived mpa is invalid");
+                    assertEquals("G", mpa.getName(), "Name of retrived mpa is invalid");
+                    assertEquals("у фильма нет возрастных ограничений", mpa.getDescription(),
+                        "Description of retrived mpa is invalid");
                 }
             );
+    }
+
+    @Test
+    @DisplayName("Find mpa by incorrect id should return null")
+    void findFilmByIncorrectIdShoudReturnNull() {
+        final Optional<Mpa> mpaOptional = mpaStorage.findById(-1);
+        assertThat(mpaOptional).isNotPresent();
     }
 }

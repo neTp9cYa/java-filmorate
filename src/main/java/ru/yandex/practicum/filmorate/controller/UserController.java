@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,18 +44,18 @@ public class UserController {
     }
 
     @GetMapping
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         return userService.findAll();
     }
 
     @GetMapping("/{id}/friends")
-    public Collection<User> findFriends(@PathVariable final int id) {
+    public List<User> findFriends(@PathVariable final int id) {
         return userService.findFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection<User> findCommonFriends(@PathVariable final int id,
-                                              @PathVariable final int otherId) {
+    public List<User> findCommonFriends(@PathVariable final int id,
+                                        @PathVariable final int otherId) {
         return userService.findCommonFriends(id, otherId);
     }
 

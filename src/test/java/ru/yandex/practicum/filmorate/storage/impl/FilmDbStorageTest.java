@@ -1,30 +1,34 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 
-@SpringBootTest
-@AutoConfigureTestDatabase
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
-@DisplayName("Store genre in database")
+@JdbcTest
+@Import({FilmDbStorage.class, UserDbStorage.class})
+@DisplayName("Store film in database")
 class FilmDbStorageTest {
-    private final FilmDbStorage filmStorage;
-    private final UserDbStorage userStorage;
+
+    @Autowired
+    private FilmDbStorage filmStorage;
+    @Autowired
+    private UserDbStorage userStorage;
 
     @Test
     @DisplayName("Create film and then get by id should success")
@@ -32,12 +36,20 @@ class FilmDbStorageTest {
         Film film = getCorrectFilmBuilder().build();
         film = filmStorage.create(film);
 
-        assertTrue(film.getId() > 0);
+        assertNotNull(film, "Created film is null");
+        assertNotNull(film.getId(), "Film id is not generated");
 
         final Optional<Film> storedFilmOptional = filmStorage.findFilmById(film.getId());
 
         assertThat(storedFilmOptional).isPresent();
-        assertEquals(film, storedFilmOptional.get());
+        assertEquals(film, storedFilmOptional.get(), "Сreated film contains invalid data");
+    }
+
+    @Test
+    @DisplayName("Find film by incorrect id should return null")
+    void findFilmByIncorrectIdShoudReturnNull() {
+        final Optional<Film> storedFilmOptional = filmStorage.findFilmById(-1);
+        assertThat(storedFilmOptional).isNotPresent();
     }
 
     @Test
@@ -56,13 +68,15 @@ class FilmDbStorageTest {
             .name("PG")
             .description("детям рекомендуется смотреть фильм с родителями")
             .build());
-        film.setGenres(List.of(Genre.builder().id(3).name("Мультфильм").build()));
+        SortedSet<Genre> genres = new TreeSet<>();
+        genres.add(Genre.builder().id(3).name("Мультфильм").build());
+        film.setGenres(genres);
 
         filmStorage.update(film);
         final Optional<Film> storedFilmOptional = filmStorage.findFilmById(film.getId());
 
         assertThat(storedFilmOptional).isPresent();
-        assertEquals(film, storedFilmOptional.get());
+        assertEquals(film, storedFilmOptional.get(), "Film properties updated incorrectly");
     }
 
     @Test
@@ -74,7 +88,7 @@ class FilmDbStorageTest {
         film1 = filmStorage.create(film1);
         film2 = filmStorage.create(film2);
 
-        final Collection<Film> films = filmStorage.findAll();
+        final List<Film> films = filmStorage.findAll();
 
         assertThat(films)
             .isNotNull()
@@ -102,7 +116,7 @@ class FilmDbStorageTest {
         filmStorage.addLike(film1.getId(), user2.getId());
         film1 = filmStorage.findFilmById(film1.getId()).get();
 
-        Collection<Film> films = filmStorage.findPopular(1);
+        List<Film> films = filmStorage.findPopular(1);
         assertThat(films)
             .isNotNull()
             .hasSize(1)
@@ -131,11 +145,11 @@ class FilmDbStorageTest {
 
         filmStorage.addLike(film.getId(), user.getId());
         Film storedFilm = filmStorage.findFilmById(film.getId()).get();
-        assertEquals(1, storedFilm.getLikeCount());
+        assertEquals(1, storedFilm.getLikeCount(), "Like has not added");
 
         filmStorage.removeLike(film.getId(), user.getId());
         storedFilm = filmStorage.findFilmById(film.getId()).get();
-        assertEquals(0, storedFilm.getLikeCount());
+        assertEquals(0, storedFilm.getLikeCount(), "Like has not removed");
     }
 
     private Film.FilmBuilder getCorrectFilmBuilder() {

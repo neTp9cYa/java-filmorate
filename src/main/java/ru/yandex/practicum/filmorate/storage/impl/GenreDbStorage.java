@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
@@ -13,37 +15,38 @@ import ru.yandex.practicum.filmorate.storage.GenreStorage;
 @Component
 @RequiredArgsConstructor
 public class GenreDbStorage implements GenreStorage {
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcOperations namedParameterJdbcOperations;
 
     @Override
-    public Collection<Genre> findAll() {
-        final String sql = "select ID, NAME from GENRE order by ID";
-        final SqlRowSet rows = jdbcTemplate.queryForRowSet(sql);
-
-        Collection<Genre> mpas = new ArrayList<>();
-        while (rows.next()) {
-            mpas.add(mapRowToGenre(rows));
-        }
-
-        return mpas;
+    public List<Genre> findAll() {
+        final String sql = "select GENRE_ID, NAME from GENRES order by GENRE_ID";
+        final List<Genre> genres = namedParameterJdbcOperations.getJdbcOperations().query(sql, this::mapRowToGenre);
+        return genres;
     }
 
     @Override
     public Optional<Genre> findById(final int id) {
-        final String sql = "select ID, NAME from GENRE where ID = ?";
-        final SqlRowSet rows = jdbcTemplate.queryForRowSet(sql, id);
-
-        if (!rows.next()) {
+        final String sql = "select GENRE_ID, NAME from GENRES where GENRE_ID = :GENRE_ID";
+        final MapSqlParameterSource parameters = new MapSqlParameterSource().addValue("GENRE_ID", id);
+        try {
+            final Genre genre = namedParameterJdbcOperations.queryForObject(sql, parameters, this::mapRowToGenre);
+            return Optional.of(genre);
+        } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
-
-        final Genre genre = mapRowToGenre(rows);
-        return Optional.of(genre);
     }
 
-    private Genre mapRowToGenre(final SqlRowSet row) {
+    @Override
+    public List<Genre> findByIds(final int[] ids) {
+        final String sql = "select ID, NAME from GENRES where GENRE_ID IN (:GENRE_IDS)";
+        final MapSqlParameterSource parameters = new MapSqlParameterSource().addValue("GENRE_IDS", ids);
+        final List<Genre> genres = namedParameterJdbcOperations.getJdbcOperations().query(sql, this::mapRowToGenre);
+        return genres;
+    }
+
+    private Genre mapRowToGenre(final ResultSet row, final int rowNumber) throws SQLException {
         return Genre.builder()
-            .id(row.getInt("ID"))
+            .id(row.getInt("GENRE_ID"))
             .name(row.getString("NAME"))
             .build();
     }

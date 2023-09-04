@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.SortedSet;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
@@ -11,7 +11,7 @@ import lombok.ToString;
 @ToString
 @Builder
 public class Film {
-    private int id;
+    private Integer id;
     private String name;
     private String description;
     private LocalDate releaseDate;
@@ -20,5 +20,5 @@ public class Film {
     private int rate;
     private int likeCount;
     @Singular
-    private Collection<Genre> genres;
+    private SortedSet<Genre> genres;
 }

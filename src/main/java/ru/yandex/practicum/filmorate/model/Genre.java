@@ -5,7 +5,12 @@ import lombok.Data;
 
 @Data
 @Builder
-public class Genre {
-    private int id;
+public class Genre implements Comparable<Genre> {
+    private Integer id;
     private String name;
+
+    @Override
+    public int compareTo(Genre genre) {
+        return id - genre.id;
+    }
 }

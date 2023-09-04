@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +23,7 @@ public class MpaController {
     }
 
     @GetMapping
-    public Collection<Mpa> findAll() {
+    public List<Mpa> findAll() {
         return mpaService.findAll();
     }
 }

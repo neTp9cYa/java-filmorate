@@ -1,38 +1,38 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 @Component
-@Qualifier("userDbStorage")
 @RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcOperations namedParameterJdbcOperations;
 
     @Override
     public User create(User user) {
-        final SimpleJdbcInsert userInsert = new SimpleJdbcInsert(jdbcTemplate)
-            .withTableName("FILMORATE_USER")
-            .usingGeneratedKeyColumns("ID");
+        final String sql = "insert into USERS (EMAIL, LOGIN, BIRTHDAY, NAME) "
+            + "values (:EMAIL, :LOGIN, :BIRTHDAY, :NAME)";
+        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+            .addValue("EMAIL", user.getEmail())
+            .addValue("LOGIN", user.getLogin())
+            .addValue("BIRTHDAY", user.getBirthday())
+            .addValue("NAME", user.getName());
+        final KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        final Map<String, Object> cols = new HashMap<>();
-        cols.put("EMAIL", user.getEmail());
-        cols.put("LOGIN", user.getLogin());
-        cols.put("BIRTHDAY", user.getBirthday());
-        cols.put("NAME", user.getName());
-        final int userId = userInsert.executeAndReturnKey(cols).intValue();
+        namedParameterJdbcOperations.update(sql, parameters, keyHolder, new String[] {"USER_ID"});
 
+        final int userId = keyHolder.getKey().intValue();
         user.setId(userId);
 
         return user;
@@ -40,32 +40,36 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void update(User user) {
-        final String sql = "update FILMORATE_USER set " +
-            "EMAIL = ?, LOGIN = ?, BIRTHDAY = ?, NAME = ? " +
-            "where ID = ?";
+        final String sql = "update USERS set " +
+            "EMAIL = :EMAIL, LOGIN = :LOGIN, BIRTHDAY = :BIRTHDAY, NAME = :NAME " +
+            "where USER_ID = :USER_ID";
+        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+            .addValue("EMAIL", user.getEmail())
+            .addValue("LOGIN", user.getLogin())
+            .addValue("BIRTHDAY", user.getBirthday())
+            .addValue("NAME", user.getName())
+            .addValue("USER_ID", user.getId());
 
-        jdbcTemplate.update(sql,
-            user.getEmail(), user.getLogin(), user.getBirthday(), user.getName(),
-            user.getId());
+        namedParameterJdbcOperations.update(sql, parameters);
     }
 
     @Override
     public Optional<User> findUserById(int id) {
-        final String sql = "select ID, EMAIL, LOGIN, BIRTHDAY, NAME from FILMORATE_USER where ID = ?";
-        final SqlRowSet rows = jdbcTemplate.queryForRowSet(sql, id);
+        final String sql = "select USER_ID, EMAIL, LOGIN, BIRTHDAY, NAME from USERS where USER_ID = :USER_ID";
+        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+            .addValue("USER_ID", id);
 
-        if (!rows.next()) {
+        try {
+            final User user = namedParameterJdbcOperations.queryForObject(sql, parameters, this::mapRowToUser);
+            return Optional.of(user);
+        } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
-
-        final User user = mapRowToUser(rows);
-
-        return Optional.of(user);
     }
 
-    private User mapRowToUser(SqlRowSet row) {
+    private User mapRowToUser(final ResultSet row, final int rowNumber) throws SQLException {
         return User.builder()
-            .id(row.getInt("ID"))
+            .id(row.getInt("USER_ID"))
             .email(row.getString("EMAIL"))
             .login(row.getString("LOGIN"))
             .birthday(row.getDate("BIRTHDAY").toLocalDate())
@@ -74,67 +78,57 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> findAll() {
-        final String sql = "select ID, EMAIL, LOGIN, BIRTHDAY, NAME from FILMORATE_USER order by ID";
-        final SqlRowSet rows = jdbcTemplate.queryForRowSet(sql);
-
-        final Collection<User> users = new ArrayList<>();
-        while (rows.next()) {
-            users.add(mapRowToUser(rows));
-        }
-
+    public List<User> findAll() {
+        final String sql = "select USER_ID, EMAIL, LOGIN, BIRTHDAY, NAME from USERS order by USER_ID";
+        final List<User> users = namedParameterJdbcOperations.getJdbcOperations().query(sql, this::mapRowToUser);
         return users;
     }
 
     @Override
     public void addFriend(int userId, int friendId) {
-        final SimpleJdbcInsert friendInsert = new SimpleJdbcInsert(jdbcTemplate)
-            .withTableName("FRIEND");
+        final String sql = "insert into FRIENDS (USER_ID, FRIEND_ID) values (:USER_ID, :FRIEND_ID)";
+        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+            .addValue("USER_ID", userId)
+            .addValue("FRIEND_ID", friendId);
 
-        final Map<String, Object> cols = new HashMap<>();
-        cols.put("USER_ID", userId);
-        cols.put("FRIEND_ID", friendId);
-        friendInsert.execute(cols);
+        namedParameterJdbcOperations.update(sql, parameters);
     }
 
     @Override
     public void removeFriend(int userId, int friendId) {
-        final String sql = "delete from FRIEND where USER_ID = ? and FRIEND_ID = ?";
-        jdbcTemplate.update(sql, userId, friendId);
+        final String sql = "delete from FRIENDS where USER_ID = :USER_ID and FRIEND_ID = :FRIEND_ID";
+        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+            .addValue("USER_ID", userId)
+            .addValue("FRIEND_ID", friendId);
+
+        namedParameterJdbcOperations.update(sql, parameters);
     }
 
     @Override
-    public Collection<User> findFriends(int id) {
-        final String sql = "select u.ID, u.EMAIL, u.LOGIN, u.BIRTHDAY, u.NAME " +
-            "from FRIEND f " +
-            "inner join FILMORATE_USER u on f.FRIEND_ID = u.ID " +
-            "where f.USER_ID = ? " +
-            "order by u.ID";
-        final SqlRowSet rows = jdbcTemplate.queryForRowSet(sql, id);
-
-        final Collection<User> users = new ArrayList<>();
-        while (rows.next()) {
-            users.add(mapRowToUser(rows));
-        }
-
+    public List<User> findFriends(int id) {
+        final String sql = "select u.USER_ID, u.EMAIL, u.LOGIN, u.BIRTHDAY, u.NAME " +
+            "from FRIENDS f " +
+            "inner join USERS u on f.FRIEND_ID = u.USER_ID " +
+            "where f.USER_ID = :USER_ID " +
+            "order by u.USER_ID";
+        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+            .addValue("USER_ID", id);
+        final List<User> users = namedParameterJdbcOperations.query(sql, parameters, this::mapRowToUser);
         return users;
     }
 
     @Override
-    public Collection<User> findCommonFriends(int id, int otherId) {
-        final String sql = "select u.ID, u.EMAIL, u.LOGIN, u.BIRTHDAY, u.NAME " +
-            "from FRIEND f1 " +
-            "inner join FRIEND f2 on f1.FRIEND_ID = f2.FRIEND_ID " +
-            "inner join FILMORATE_USER u on f1.FRIEND_ID = u.ID " +
-            "where f1.USER_ID = ? and f2.USER_ID = ? " +
-            "order by u.ID";
-        final SqlRowSet rows = jdbcTemplate.queryForRowSet(sql, id, otherId);
-
-        final Collection<User> users = new ArrayList<>();
-        while (rows.next()) {
-            users.add(mapRowToUser(rows));
-        }
-
+    public List<User> findCommonFriends(int id, int otherId) {
+        final String sql = "select u.USER_ID, u.EMAIL, u.LOGIN, u.BIRTHDAY, u.NAME " +
+            "from FRIENDS f1 " +
+            "inner join FRIENDS f2 on f1.FRIEND_ID = f2.FRIEND_ID " +
+            "inner join USERS u on f1.FRIEND_ID = u.USER_ID " +
+            "where f1.USER_ID = :USER_ID and f2.USER_ID = :OTHER_USER_ID " +
+            "order by u.USER_ID";
+        final MapSqlParameterSource parameters = new MapSqlParameterSource()
+            .addValue("USER_ID", id)
+            .addValue("OTHER_USER_ID", otherId);
+        final List<User> users = namedParameterJdbcOperations.query(sql, parameters, this::mapRowToUser);
         return users;
     }
 }
