@@ -144,7 +144,6 @@ public class FilmDbStorage implements FilmStorage {
             final Mpa mpa = Mpa.builder()
                 .id(row.getInt("MPA_ID"))
                 .name(row.getString("MPA_NAME"))
-                .description(row.getString("MPA_DESCRIPTION"))
                 .build();
             filmBuilder.mpa(mpa);
         }

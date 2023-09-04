@@ -64,7 +64,6 @@ class FilmDbStorageTest {
         film.setMpa(Mpa.builder()
             .id(2)
             .name("PG")
-            .description("детям рекомендуется смотреть фильм с родителями")
             .build());
         SortedSet<Genre> genres = new TreeSet<>();
         genres.add(Genre.builder().id(3).name("Мультфильм").build());
@@ -160,7 +159,6 @@ class FilmDbStorageTest {
             .mpa(Mpa.builder()
                 .id(1)
                 .name("G")
-                .description("у фильма нет возрастных ограничений")
                 .build())
             .genre(Genre.builder().id(1).name("Комедия").build())
             .genre(Genre.builder().id(2).name("Драма").build());

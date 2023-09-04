@@ -40,7 +40,6 @@ public class MpaDbStorage implements MpaStorage {
         return Mpa.builder()
             .id(row.getInt("MPA_ID"))
             .name(row.getString("NAME"))
-            .description(row.getString("DESCRIPTION"))
             .build();
     }
 }

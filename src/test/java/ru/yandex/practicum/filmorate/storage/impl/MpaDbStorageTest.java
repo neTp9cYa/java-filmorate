@@ -39,8 +39,6 @@ class MpaDbStorageTest {
             .hasValueSatisfying(mpa -> {
                     assertEquals(1, mpa.getId(), "Id of retrived mpa is invalid");
                     assertEquals("G", mpa.getName(), "Name of retrived mpa is invalid");
-                    assertEquals("у фильма нет возрастных ограничений", mpa.getDescription(),
-                        "Description of retrived mpa is invalid");
                 }
             );
     }
