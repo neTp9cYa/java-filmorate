@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import java.time.LocalDate;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import static org.assertj.core.api.Assertions.assertThat;
